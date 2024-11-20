@@ -1,0 +1,49 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/ThemeOverlay.AppCompat.Light"
+    android:background="@color/white"
+    tools:showIn="navigation_view">
+
+    <group
+        android:id="@+id/group1">
+
+        <item
+            android:id="@+id/nav_renthistory"
+            android:background="@color/white"
+            android:title="Rented Items"/>
+        <item
+            android:id="@+id/nav_viewprofile"
+            android:background="@color/white"
+            android:title="View Profile"/>
+        <item
+            android:id="@+id/nav_upload"
+            android:background="@color/white"
+            android:title="Upload an item"/>
+        <item
+            android:id="@+id/nav_map"
+            android:background="@color/white"
+            android:title="Map"/>
+        <item
+            android:id="@+id/nav_notifications"
+            android:background="@color/white"
+            android:title="Notifications"/>
+
+    </group>
+
+    <group
+        android:id="@+id/group2">
+        <item
+            android:id="@+id/nav_help"
+            android:background="@color/white"
+            android:title="Help Center"/>
+        <item
+            android:id="@+id/nav_terms"
+            android:background="@color/white"
+            android:title="Terms and Conditions"/>
+        <item
+            android:id="@+id/nav_logout"
+            android:background="@color/white"
+            android:title="Logout"/>
+    </group>
+</menu>

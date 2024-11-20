@@ -1,0 +1,17 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MobileComputing" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.MobileComputing" parent="Base.Theme.MobileComputing" />
+
+    <style name="CustomNavigationView" parent="Widget.Design.NavigationView">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:itemBackground">@android:color/transparent</item>
+        <!-- Customize item text and icon color -->
+
+    </style>
+
+</resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="4dp"
+        app:layout_scrollFlags="scroll|enterAlways">
+
+        <ImageView
+            android:id="@+id/back_arrow"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/back_arrow"
+            android:contentDescription="Back"
+            app:tint="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/rent_history_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notifications"
+            android:textSize="24sp"
+            android:textColor="@android:color/black"
+            android:layout_gravity="center"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"/>
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <!-- RecyclerView for displaying the list of notifications -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notifications_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:padding="8dp"/>
+
+</LinearLayout>
