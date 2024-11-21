@@ -9,12 +9,6 @@
     android:background="@drawable/blue"
     android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/user_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/user_icon" />
-
     <TextView
         android:id="@+id/tv_app_name"
         android:layout_width="wrap_content"
@@ -28,6 +22,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
-        android:textSize="14sp"
+        android:textSize="24sp"
         android:layout_marginBottom="16dp" />
 </LinearLayout>

@@ -1,9 +1,9 @@
 package com.example.mobilecomputing;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,11 +17,17 @@ import com.example.mobilecomputing.Activity.MapActivity;
 import com.example.mobilecomputing.Activity.NotificationsActivity;
 import com.example.mobilecomputing.Activity.ProfileActivity;
 import com.example.mobilecomputing.Activity.RentHistory;
-import com.example.mobilecomputing.Activity.UploadActivity; // Import the Upload Activity
+import com.example.mobilecomputing.Activity.UploadActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import androidx.appcompat.widget.SearchView;
 import com.example.mobilecomputing.Adapter.CardAdapter;
+import com.example.mobilecomputing.Adapter.CardItem;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +41,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     private RecyclerView recyclerView;
     private SearchView searchView;
     private CardAdapter cardAdapter;
-    private List<String> itemList;
+    private List<CardItem> itemList;
+
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,50 +54,76 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Set up the hamburger icon for the toolbar
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Enable the hamburger icon
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.menu_icon); // Set custom hamburger icon if needed
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.menu_icon);
         }
 
-        // Initialize Navigation Drawer
         navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this); // Set the listener
+        navigationView.setNavigationItemSelectedListener(this);
 
-        // Initialize RecyclerView with GridLayoutManager (2 items per row)
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 items per row
 
-        // Create a list of items for the adapter
-        itemList = new ArrayList<>();
-        itemList.add("Item 1");
-        itemList.add("Item 2");
-        itemList.add("Item 3");
-        itemList.add("Item 4");
-        itemList.add("Item 5");
-        itemList.add("Item 5");
-        itemList.add("Item 6");
-        itemList.add("Item 7");
-        itemList.add("Item 8");
-        itemList.add("Item 9");
+        // Initialize Firebase Database
+        databaseReference = FirebaseDatabase.getInstance().getReference("products");
 
-        // Initialize CardAdapter and set it to the RecyclerView
+        // Initialize the list and adapter
+        itemList = new ArrayList<>();
         cardAdapter = new CardAdapter(itemList);
         recyclerView.setAdapter(cardAdapter);
 
-        // Initialize SearchView
+        // Add a temporary item for testing
+        itemList.add(new CardItem("Temporary Item", "This is a temporary item for testing", R.drawable.blue));  // Example item
+        cardAdapter.notifyItemInserted(itemList.size() - 1);
+
+        // Fetch product data from Firebase Realtime Database
+        fetchProductData();
+
         searchView = findViewById(R.id.search_view);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // Handle search query submission (e.g., filter RecyclerView)
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Handle search text change (e.g., update RecyclerView)
+                // Update the adapter with a filtered list
+                List<CardItem> filteredList = new ArrayList<>();
+                for (CardItem item : itemList) {
+                    if (item.getText().toLowerCase().contains(newText.toLowerCase())) {
+                        filteredList.add(item);
+                    }
+                }
+                cardAdapter.updateItems(filteredList);
                 return false;
+            }
+        });
+    }
+
+
+    private void fetchProductData() {
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                itemList.clear(); // Clear the list before adding new data
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    // Get product details
+                    CardItem item = snapshot.getValue(CardItem.class);
+                    if (item != null) {
+                        itemList.add(item); // Add the item to the list
+                    }
+                }
+
+                // Notify the adapter that data has changed
+                cardAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(Dashboard.this, "Failed to load data", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -126,29 +160,21 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
     private void logoutUser() {
-        // Clear user session (SharedPreferences or Firebase, depending on your app's logic)
-
-        // Redirect to Launch Activity
-        Intent launchIntent = new Intent(Dashboard.this, Launch.class);  // Redirect to Launch.java
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the stack
+        Intent launchIntent = new Intent(Dashboard.this, Launch.class);
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(launchIntent);
-
-        // Optionally, finish the current activity so the user can't press back to return
         finish();
     }
 
-
-
-    // Handle toolbar item clicks (e.g., hamburger icon)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Open the navigation drawer when the hamburger icon is clicked
             drawerLayout.openDrawer(navigationView);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

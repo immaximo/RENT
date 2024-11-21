@@ -3,21 +3,23 @@ package com.example.mobilecomputing.Adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide; // Correct import for Glide
 import com.example.mobilecomputing.R;
 
 import java.util.List;
 
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
-    private List<String> items;
+    private List<CardItem> items;
 
     // Constructor
-    public CardAdapter(List<String> items) {
+    public CardAdapter(List<CardItem> items) {
         if (items != null) {
             this.items = items;
         } else {
@@ -28,38 +30,47 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the item layout (Ensure you have this layout created)
+        // Inflate the item layout
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        // Get the current item
+        CardItem item = items.get(position);
+
         // Bind data to the TextView
-        String item = items.get(position);
-        holder.textView.setText(item);
+        holder.textView.setText(item.getText());
+
+        // Load image into the ImageView using Glide
+        Glide.with(holder.imageView.getContext())
+                .load(item.getImageUrl())
+                .placeholder(R.drawable.blue) // Optional placeholder image
+                .error(R.drawable.uploadimg)             // Optional error image
+                .into(holder.imageView);
     }
 
-    public void updateItems(List<String> newItems) {
+    // Update the list with new items and refresh the RecyclerView
+    public void updateItems(List<CardItem> newItems) {
         items = newItems;
         notifyDataSetChanged();
     }
 
     @Override
     public int getItemCount() {
-        // Return the size of the item list
         return items.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView textView;
+        ImageView imageView;
 
-        // ViewHolder constructor
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Make sure your card_item.xml has the TextView with the correct ID
-            textView = itemView.findViewById(R.id.card_text);  // Replace with actual ID if necessary
+            textView = itemView.findViewById(R.id.card_text);   // Replace with actual ID
+            imageView = itemView.findViewById(R.id.card_image); // Replace with actual ID
         }
     }
 }

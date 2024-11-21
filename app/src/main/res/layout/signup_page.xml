@@ -70,7 +70,7 @@
             android:layout_marginTop="12dp"
             android:background="@drawable/text_background"
             android:ems="10"
-            android:hint="Enter your username"
+            android:hint="Your username"
             android:textColorHint="@color/gray"
             android:inputType="text"
             android:padding="12dp"
@@ -84,52 +84,86 @@
             android:layout_marginTop="12dp"
             android:background="@drawable/text_background"
             android:ems="10"
-            android:hint="Enter your email"
+            android:hint="Your email"
             android:textColorHint="@color/gray"
             android:inputType="textEmailAddress"
             android:padding="12dp"
             android:textColor="#707070"
             android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/userpass"
+        <!-- Password with Eye Icon -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/text_background"
-            android:ems="10"
-            android:hint="Enter your password"
-            android:textColorHint="@color/gray"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:textColor="#707070"
-            android:textSize="18sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
 
-        <EditText
-            android:id="@+id/confirmpass"
+            <EditText
+                android:id="@+id/userpass"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/text_background"
+                android:ems="10"
+                android:hint="Enter your password"
+                android:textColorHint="@color/gray"
+                android:inputType="textPassword"
+                android:paddingStart="12dp"
+                android:paddingEnd="40dp"
+                android:textColor="#707070"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/password_toggle"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_eye" />
+        </RelativeLayout>
+
+        <!-- Confirm Password with Eye Icon -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/text_background"
-            android:ems="10"
-            android:hint="Confirm your password"
-            android:textColorHint="@color/gray"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:textColor="#707070"
-            android:textSize="18sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <EditText
+                android:id="@+id/confirmpass"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+
+                android:background="@drawable/text_background"
+                android:ems="10"
+                android:hint="Confirm your password"
+                android:textColorHint="@color/gray"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="#707070"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/confirm_password_toggle"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_eye" />
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/termsPolicy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="32dp"
             android:text="By clicking Sign Up, you agree to our Terms and Privacy Policy"
             android:textColor="#707070"
             android:textSize="14sp" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/button1"
+            android:id="@+id/signup_button"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="16dp"

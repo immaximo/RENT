@@ -40,21 +40,38 @@
             android:background="@drawable/text_background"
             android:inputType="text"
             android:hint="Enter your username"
-            android:textColorHint="@color/gray" /> <!-- Set hint color for better readability -->
+            android:textColorHint="@color/gray" />
 
-        <EditText
-            android:id="@+id/userpass"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:textSize="18sp"
-            android:padding="12dp"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/black"
-            android:ems="10"
-            android:background="@drawable/text_background"
-            android:inputType="textPassword"
-            android:hint="Enter your password"
-            android:textColorHint="@color/gray" /> <!-- Set hint color for better readability -->
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <EditText
+                android:id="@+id/userpass"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/text_background"
+                android:ems="10"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="#707070"
+                android:textSize="18sp"
+                android:hint="Enter your password"
+                android:textColorHint="@color/gray"/>
+
+            <ImageView
+                android:id="@+id/password_toggle"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_eye" />
+        </RelativeLayout>
+
+
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button1"
@@ -112,39 +129,10 @@
             android:orientation="horizontal"
             android:layout_marginTop="16dp">
 
-            <!-- Facebook button -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="16dp"
-                android:layout_weight="0.5"
-                android:background="@drawable/soc_btn_bg"
-                android:orientation="horizontal"
-                android:padding="8dp">
-
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/facebook"
-                    android:layout_gravity="center_vertical" />
-
-                <TextView
-                    android:id="@+id/textview4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Facebook"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
-
             <!-- Google button -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="50dp"
-                android:layout_marginStart="16dp"
                 android:layout_weight="0.5"
                 android:background="@drawable/soc_btn_bg"
                 android:orientation="horizontal"
@@ -154,18 +142,18 @@
                     android:id="@+id/imageView2"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:src="@drawable/google"
-                    android:layout_gravity="center_vertical" />
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/google" />
 
                 <TextView
                     android:id="@+id/textview5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
                     android:text="Google"
                     android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="8dp" />
+                    android:textSize="18sp" />
             </LinearLayout>
         </LinearLayout>
 
