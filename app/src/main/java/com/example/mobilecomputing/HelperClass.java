@@ -1,16 +1,17 @@
 package com.example.mobilecomputing;
 
 public class HelperClass {
-    String username, email;
+    private String email;
+    private String username;
+    private String password;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
+    public HelperClass(String email, String username, String password) {
+        this.email = email;
         this.username = username;
+        this.password = password;
     }
 
+    // Getter and Setter methods
     public String getEmail() {
         return email;
     }
@@ -19,11 +20,17 @@ public class HelperClass {
         this.email = email;
     }
 
-    public HelperClass(String username, String email) {
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
         this.username = username;
-        this.email = email;
     }
 
-    public HelperClass() {
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

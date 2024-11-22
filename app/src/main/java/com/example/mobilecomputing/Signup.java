@@ -1,89 +1,105 @@
 package com.example.mobilecomputing;
 
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.text.InputType;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class Signup extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
-    private DatabaseReference databaseRef;
-    private EditText newusername, newemail, newpassword, confirmpass;
+    EditText signupUsername, signupEmail, signupPassword, signupConfirmPassword;
+    Button signupButton;
+    FirebaseDatabase database;
+    DatabaseReference reference;
+    ImageView backArrow, passwordToggle, confirmPasswordToggle;
+    boolean isPasswordVisible = false, isConfirmPasswordVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup_page);
 
-        mAuth = FirebaseAuth.getInstance();
-        databaseRef = FirebaseDatabase.getInstance().getReference("usernames");
+        signupEmail = findViewById(R.id.email);
+        signupUsername = findViewById(R.id.username);
+        signupPassword = findViewById(R.id.userpass);
+        signupConfirmPassword = findViewById(R.id.confirmpass);
+        signupButton = findViewById(R.id.signup_button);
+        backArrow = findViewById(R.id.back_arrow); // Reference to the back arrow ImageView
+        passwordToggle = findViewById(R.id.password_toggle);
+        confirmPasswordToggle = findViewById(R.id.confirm_password_toggle);
 
-        newusername = findViewById(R.id.username);
-        newemail = findViewById(R.id.email);
-        newpassword = findViewById(R.id.userpass);
-        confirmpass = findViewById(R.id.confirmpass);
-
-        // Back arrow
-        ImageView backArrow = findViewById(R.id.back_arrow);
+        // Back arrow click listener to navigate back to Login activity
         backArrow.setOnClickListener(v -> {
-            Intent intent = new Intent(Signup.this, Login.class); // Replace Login with your login activity class name
+            Intent intent = new Intent(Signup.this, Login.class);
             startActivity(intent);
-            finish();
+            finish(); // Optional: Close the Signup activity to prevent back navigation to it
         });
 
-        // Signup button
-        Button signUpButton = findViewById(R.id.signup_button);
-        signUpButton.setOnClickListener(v -> {
-            String username = newusername.getText().toString().trim();
-            String email = newemail.getText().toString().trim();
-            String password = newpassword.getText().toString().trim();
-            String confirmpasswordtxt = confirmpass.getText().toString().trim();
+        // Toggle password visibility
+        passwordToggle.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                // Hide password
+                signupPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye); // Update to closed eye icon
+            } else {
+                // Show password
+                signupPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                passwordToggle.setImageResource(R.drawable.ic_eye_open); // Update to open eye icon
+            }
+            isPasswordVisible = !isPasswordVisible;
+            signupPassword.setSelection(signupPassword.getText().length()); // Move cursor to the end
+        });
 
-            // Validate input fields
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmpasswordtxt.isEmpty()) {
-                Toast.makeText(getApplicationContext(), "Please fill up all fields...", Toast.LENGTH_SHORT).show();
+        // Toggle confirm password visibility
+        confirmPasswordToggle.setOnClickListener(v -> {
+            if (isConfirmPasswordVisible) {
+                // Hide password
+                signupConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                confirmPasswordToggle.setImageResource(R.drawable.ic_eye); // Update to closed eye icon
+            } else {
+                // Show password
+                signupConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                confirmPasswordToggle.setImageResource(R.drawable.ic_eye_open); // Update to open eye icon
+            }
+            isConfirmPasswordVisible = !isConfirmPasswordVisible;
+            signupConfirmPassword.setSelection(signupConfirmPassword.getText().length()); // Move cursor to the end
+        });
+        signupButton.setOnClickListener(view -> {
+            String email = signupEmail.getText().toString();
+            String username = signupUsername.getText().toString();
+            String password = signupPassword.getText().toString();
+            String confirmPassword = signupConfirmPassword.getText().toString();
+            // Validate password confirmation
+            if (!password.equals(confirmPassword)) {
+                Toast.makeText(Signup.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (!password.equals(confirmpasswordtxt)) {
-                Toast.makeText(getApplicationContext(), "Passwords are not matching...", Toast.LENGTH_SHORT).show();
-                return;
+
+            if (!username.isEmpty() && !email.isEmpty() && !password.isEmpty()) {
+                // Save user data to Firebase
+                database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+                reference = database.getReference("users");
+
+                HelperClass helperClass = new HelperClass(email, username, password);
+                reference.child(username).setValue(helperClass).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(Signup.this, "You have signed up successfully!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Signup.this, Login.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(Signup.this, "Signup failed! Try again.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(Signup.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             }
-
-            // Create user in Firebase Authentication
-            mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            // Save additional user data in Realtime Database
-                            HelperClass helper = new HelperClass(username, email);
-                            databaseRef.child(username).setValue(helper).addOnCompleteListener(databaseTask -> {
-                                if (databaseTask.isSuccessful()) {
-                                    Toast.makeText(getApplicationContext(), "Account created successfully!", Toast.LENGTH_SHORT).show();
-
-                                    // Navigate to Login activity
-                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                        startActivity(new Intent(getApplicationContext(), Login.class));
-                                        finish();
-                                    }, 1000);
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "Failed to save user data.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        } else {
-                            String errorMessage = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(getApplicationContext(), "Signup failed: " + errorMessage, Toast.LENGTH_SHORT).show();
-                        }
-                    });
         });
     }
 }
