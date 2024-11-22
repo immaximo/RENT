@@ -11,7 +11,6 @@ public class HelperClass {
         this.password = password;
     }
 
-    // Getter and Setter methods
     public String getEmail() {
         return email;
     }
@@ -23,6 +22,7 @@ public class HelperClass {
     public String getUsername() {
         return username;
     }
+
     public void setUsername(String username) {
         this.username = username;
     }
