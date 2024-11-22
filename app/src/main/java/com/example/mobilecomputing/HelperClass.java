@@ -3,12 +3,10 @@ package com.example.mobilecomputing;
 public class HelperClass {
     private String email;
     private String username;
-    private String password;
 
-    public HelperClass(String email, String username, String password) {
+    public HelperClass(String email, String username) {
         this.email = email;
         this.username = username;
-        this.password = password;
     }
 
     public String getEmail() {
@@ -27,10 +25,4 @@ public class HelperClass {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
