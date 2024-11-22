@@ -2,6 +2,7 @@ package com.example.mobilecomputing;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,6 +29,7 @@ public class Login extends AppCompatActivity {
     private ImageView passwordToggle;
     private Button loginButton;
     private TextView forgotPasswordText, signUpText;
+    private FirebaseAuth mAuth;
 
     private boolean isPasswordVisible = false; // Track password visibility state
 
@@ -42,6 +45,7 @@ public class Login extends AppCompatActivity {
         loginButton = findViewById(R.id.button1);
         forgotPasswordText = findViewById(R.id.textview2);
         signUpText = findViewById(R.id.textview_sign_up);
+        mAuth = FirebaseAuth.getInstance();
 
         // Password visibility toggle logic
         passwordToggle.setOnClickListener(new View.OnClickListener() {
@@ -72,34 +76,49 @@ public class Login extends AppCompatActivity {
                 if (username.isEmpty() || password.isEmpty()) {
                     Toast.makeText(Login.this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Perform Firebase database check for user credentials
                     reference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
-                                // User exists, check password
+                                // User exists, retrieve the email
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                    String dbPassword = snapshot.child("password").getValue(String.class);
-                                    if (dbPassword != null && dbPassword.equals(password)) {
-                                        // Login successful
-                                        Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(Login.this, Dashboard.class); // Change to your Dashboard activity
-                                        startActivity(intent);
-                                        finish(); // Optionally finish this activity so the user cannot go back to login
+                                    String email = snapshot.child("email").getValue(String.class);
+
+                                    if (email != null) {
+                                        // Authenticate with Firebase Auth using email and password
+                                        mAuth.signInWithEmailAndPassword(email, password)
+                                                .addOnCompleteListener(Login.this, task -> {
+                                                    if (task.isSuccessful()) {
+                                                        // Login successful
+                                                        Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                                                        Intent intent = new Intent(Login.this, Dashboard.class); // Replace with your Dashboard activity
+                                                        new Handler().postDelayed(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                startActivity(intent);
+                                                                finish();
+                                                            }
+                                                        }, 1000);  // 1 second delay
+                                                    } else {
+                                                        // Authentication failed
+                                                        Toast.makeText(Login.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
                                     } else {
-                                        // Invalid password
-                                        Toast.makeText(Login.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                                        // Email not found in the database
+                                        Toast.makeText(Login.this, "User email not found", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             } else {
-                                // User does not exist
+                                // Username does not exist
                                 Toast.makeText(Login.this, "User not found", Toast.LENGTH_SHORT).show();
                             }
                         }
+
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
                             // Handle database error
-                            Toast.makeText(Login.this, "Database error", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(Login.this, "Database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

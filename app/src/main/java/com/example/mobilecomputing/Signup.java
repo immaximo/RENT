@@ -125,7 +125,7 @@ public class Signup extends AppCompatActivity {
                                                             startActivity(intent);
                                                             finish();
                                                         }
-                                                    }, 100);  // 1 second delay
+                                                    }, 1000);  // 1 second delay
                                                 } else {
                                                     // Error saving to Realtime Database
                                                     Toast.makeText(Signup.this, "Signup failed! Try again.", Toast.LENGTH_SHORT).show();
