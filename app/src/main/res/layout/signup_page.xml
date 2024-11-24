@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F2F2F2">
+    android:background="#F2F2F2"
+    android:theme="@style/Theme.MobileComputing">
 
     <!-- Back Arrow Circle -->
     <FrameLayout
@@ -32,20 +33,21 @@
         android:id="@+id/textview1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="35dp"
         android:layout_marginTop="68dp"
         android:text="Create Account"
         android:textColor="@color/black"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <TextView
         android:id="@+id/subtext1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="35dp"
         android:layout_marginTop="8dp"
         android:text="It's Quick and Easy"
         android:textColor="#707070"
@@ -57,11 +59,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/subtext1"
-        app:layout_constraintVertical_bias="0.041">
+        app:layout_constraintVertical_bias="0">
 
         <EditText
             android:id="@+id/username"
@@ -109,7 +111,7 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="40dp"
                 android:textColor="#707070"
-                android:textSize="18sp" />
+                android:textSize="18sp"/>
 
             <ImageView
                 android:id="@+id/password_toggle"
@@ -140,7 +142,7 @@
                 android:inputType="textPassword"
                 android:padding="12dp"
                 android:textColor="#707070"
-                android:textSize="18sp" />
+                android:textSize="18sp"/>
 
             <ImageView
                 android:id="@+id/confirm_password_toggle"
@@ -160,7 +162,7 @@
             android:layout_marginTop="32dp"
             android:text="By clicking Sign Up, you agree to our Terms and Privacy Policy"
             android:textColor="#707070"
-            android:textSize="14sp" />
+            android:textSize="14sp"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/signup_button"

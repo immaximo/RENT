@@ -8,7 +8,7 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start"
     android:background="@android:color/white"
-    android:theme="@style/Base.Theme.MobileComputing" >
+    android:theme="@style/Theme.MobileComputing" >
 
     <!-- Main Content Area -->
     <LinearLayout

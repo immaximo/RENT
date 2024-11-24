@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mobilecomputing.Activity.ForgotPassword;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,7 +44,7 @@ public class Login extends AppCompatActivity {
         passwordEditText = findViewById(R.id.userpass);
         passwordToggle = findViewById(R.id.password_toggle);
         loginButton = findViewById(R.id.button1);
-        forgotPasswordText = findViewById(R.id.textview2);
+        forgotPasswordText = findViewById(R.id.forgotpassword);
         signUpText = findViewById(R.id.textview_sign_up);
         mAuth = FirebaseAuth.getInstance();
 
@@ -91,7 +92,7 @@ public class Login extends AppCompatActivity {
                                                     if (task.isSuccessful()) {
                                                         // Login successful
                                                         Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                                                        Intent intent = new Intent(Login.this, Dashboard.class); // Replace with your Dashboard activity
+                                                        Intent intent = new Intent(Login.this, CreateProfile.class); // Replace with your Dashboard activity
                                                         new Handler().postDelayed(new Runnable() {
                                                             @Override
                                                             public void run() {
@@ -125,14 +126,16 @@ public class Login extends AppCompatActivity {
             }
         });
 
-        // Set up forgot password click
+
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(Login.this, "Forgot password clicked", Toast.LENGTH_SHORT).show();
-                // Redirect to forgot password screen if needed
+                // Redirect to forgot password screen
+                Intent intent = new Intent(Login.this, ForgotPassword.class); // Make sure ForgotPassword is the correct class name
+                startActivity(intent);
             }
         });
+
 
         // Navigate to signup screen
         signUpText.setOnClickListener(new View.OnClickListener() {

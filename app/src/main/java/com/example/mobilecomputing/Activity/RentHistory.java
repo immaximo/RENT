@@ -1,5 +1,6 @@
 package com.example.mobilecomputing.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mobilecomputing.Adapter.RentHistoryAdapter;
+import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +39,11 @@ public class RentHistory extends AppCompatActivity {
 
         // Set up the back button listener
         backArrow = findViewById(R.id.back_arrow);
-        backArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();  // Handles the back navigation
-            }
+        backArrow.setOnClickListener(view -> {
+            // Go back to Dashboard
+            Intent intent = new Intent(RentHistory.this, Dashboard.class);
+            startActivity(intent);
+            finish();  // Optional: To finish ProfileActivity and remove it from the back stack
         });
     }
 
