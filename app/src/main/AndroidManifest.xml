@@ -60,6 +60,9 @@
         <activity
             android:name=".Activity.UploadActivity"
             android:exported="true" />
+        <activity
+            android:name=".Activity.ForgotPassword"
+            android:exported="true" />
 
     </application>
 

@@ -14,9 +14,8 @@ import com.example.mobilecomputing.R;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private TextView fullName, username, email;
-    private EditText fullNameInput, usernameInput, emailInput;
-    private ImageView editFullName, editUsername, editEmail;
+    private TextView fullName, email, aboutMe, contact, editBtn, aboutEditBtn, contactEditBtn;
+    private EditText fullNameInput, emailInput, aboutMeInput, contactInput;
     private ImageView backArrow;
 
     @Override
@@ -38,22 +37,28 @@ public class ProfileActivity extends AppCompatActivity {
             finish();  // Optional: To finish ProfileActivity and remove it from the back stack
         });
 
+        // Find views
         fullName = findViewById(R.id.user_full_name);
-        username = findViewById(R.id.user_name);
         email = findViewById(R.id.user_email);
-
+        aboutMe = findViewById(R.id.user_about_me);  // About Me TextView
+        editBtn = findViewById(R.id.editbtn);  // Link the "Edit" button for Full Name
+        aboutEditBtn = findViewById(R.id.abouteditbtn);  // Edit button for About Me
+        contactEditBtn = findViewById(R.id.contacteditbtn);  // Edit button for Contact
         fullNameInput = findViewById(R.id.full_name_input);
-        usernameInput = findViewById(R.id.username_input);
         emailInput = findViewById(R.id.email_input);
+        aboutMeInput = findViewById(R.id.about_me_input);  // About Me EditText
 
-        editFullName = findViewById(R.id.editFullName);
-        editUsername = findViewById(R.id.editUsername);
-        editEmail = findViewById(R.id.editEmail);
 
-        editFullName.setOnClickListener(view -> toggleEditMode(fullName, fullNameInput));
-        editUsername.setOnClickListener(view -> toggleEditMode(username, usernameInput));
-        editEmail.setOnClickListener(view -> toggleEditMode(email, emailInput));
+        // Toggle edit mode when edit button for Full Name is clicked
+        editBtn.setOnClickListener(view -> toggleEditMode(fullName, fullNameInput));
 
+        // Toggle edit mode when edit button for About Me is clicked
+        aboutEditBtn.setOnClickListener(view -> toggleEditMode(aboutMe, aboutMeInput));
+
+        // Toggle edit mode when edit button for Contact is clicked
+        contactEditBtn.setOnClickListener(view -> toggleEditMode(email, emailInput));
+
+        // Optionally, handle saving profile data here
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(v -> saveProfileData());
     }
@@ -66,32 +71,34 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void saveProfileData() {
         String updatedFullName = fullNameInput.getText().toString().trim();
-        String updatedUsername = usernameInput.getText().toString().trim();
         String updatedEmail = emailInput.getText().toString().trim();
+        String updatedAboutMe = aboutMeInput.getText().toString().trim();
+
 
         // Check if the data is not empty before updating
         if (!updatedFullName.isEmpty()) {
             fullName.setText(updatedFullName);
         }
-        if (!updatedUsername.isEmpty()) {
-            username.setText(updatedUsername);
-        }
         if (!updatedEmail.isEmpty()) {
             email.setText(updatedEmail);
         }
+        if (!updatedAboutMe.isEmpty()) {
+            aboutMe.setText(updatedAboutMe);
+        }
+
 
         // Hide the EditText and show TextView again for the fields that were edited
         if (fullNameInput.getVisibility() == View.VISIBLE) {
             fullNameInput.setVisibility(View.GONE);
             fullName.setVisibility(View.VISIBLE);
         }
-        if (usernameInput.getVisibility() == View.VISIBLE) {
-            usernameInput.setVisibility(View.GONE);
-            username.setVisibility(View.VISIBLE);
-        }
         if (emailInput.getVisibility() == View.VISIBLE) {
             emailInput.setVisibility(View.GONE);
             email.setVisibility(View.VISIBLE);
+        }
+        if (aboutMeInput.getVisibility() == View.VISIBLE) {
+            aboutMeInput.setVisibility(View.GONE);
+            aboutMe.setVisibility(View.VISIBLE);
         }
     }
 }

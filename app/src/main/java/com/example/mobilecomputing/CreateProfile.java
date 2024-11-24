@@ -1,16 +1,18 @@
 package com.example.mobilecomputing;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class CreateProfile extends AppCompatActivity {
 
-    private ImageView profileImage;
-    private EditText username, bio, address;
+    private ImageView profileImage, backArrow;
+    private EditText username, bio, address, fullname;
     private Button saveButton;
 
     @Override
@@ -20,27 +22,36 @@ public class CreateProfile extends AppCompatActivity {
 
         // Initialize Views
         profileImage = findViewById(R.id.profile_image);
+        backArrow = findViewById(R.id.back_arrow);
         username = findViewById(R.id.username);
+        fullname = findViewById(R.id.fullname);
         bio = findViewById(R.id.bio);
         address = findViewById(R.id.address);
         saveButton = findViewById(R.id.save_button);
 
         // Handle the save button click
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String user = username.getText().toString();
-                String userBio = bio.getText().toString();
-                String userAddress = address.getText().toString();
+        saveButton.setOnClickListener(v -> {
+            String user = username.getText().toString();
+            String full = fullname.getText().toString();
+            String userBio = bio.getText().toString();
+            String userAddress = address.getText().toString();
 
-                // You can save the user profile data here (e.g., to Firebase, SharedPreferences, or a database)
-                // For now, just log the info
-                // For example:
-                // Log.d("Profile", "Username: " + user + ", Bio: " + userBio + ", Address: " + userAddress);
+            // Save profile data here (e.g., Firebase, SharedPreferences, etc.)
+            // For now, display a Toast
+            Toast.makeText(CreateProfile.this, "Profile Saved", Toast.LENGTH_SHORT).show();
 
-                // Optionally, show a Toast to confirm saving
-                // Toast.makeText(ProfileActivity.this, "Profile Saved", Toast.LENGTH_SHORT).show();
-            }
+            // Navigate to the Dashboard
+            Intent intent = new Intent(CreateProfile.this, Dashboard.class);
+            startActivity(intent);
+            finish(); // Optional: Finish CreateProfile to remove it from the back stack
+        });
+
+        // Handle the back arrow click
+        backArrow.setOnClickListener(v -> {
+            // Navigate back to the Login activity
+            Intent intent = new Intent(CreateProfile.this, Login.class);
+            startActivity(intent);
+            finish(); // Optional: Finish CreateProfile to remove it from the back stack
         });
     }
 }
