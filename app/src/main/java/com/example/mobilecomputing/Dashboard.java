@@ -23,6 +23,7 @@ import com.google.android.material.navigation.NavigationView;
 import androidx.appcompat.widget.SearchView;
 import com.example.mobilecomputing.Adapter.CardAdapter;
 import com.example.mobilecomputing.Adapter.CardItem;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -163,6 +164,7 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
 
 
     private void logoutUser() {
+        FirebaseAuth.getInstance().signOut();
         Intent launchIntent = new Intent(Dashboard.this, Launch.class);
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(launchIntent);

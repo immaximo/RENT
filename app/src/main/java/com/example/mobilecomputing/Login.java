@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mobilecomputing.Activity.ForgotPassword;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -66,6 +67,7 @@ public class Login extends AppCompatActivity {
                 passwordEditText.setSelection(passwordEditText.getText().length()); // Move cursor to end
             }
         });
+
         // Handle login button click
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,37 +79,67 @@ public class Login extends AppCompatActivity {
                 if (username.isEmpty() || password.isEmpty()) {
                     Toast.makeText(Login.this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
                 } else {
+                    // Check if user exists in the database
                     reference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
-                                // User exists, retrieve the email
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     String email = snapshot.child("email").getValue(String.class);
 
-                                    if (email != null) {
+                                    // Check if the profile exists
+                                    if (snapshot.hasChild("profile")) {
+                                        // Profile exists, no need to CreateProfile
                                         // Authenticate with Firebase Auth using email and password
-                                        mAuth.signInWithEmailAndPassword(email, password)
-                                                .addOnCompleteListener(Login.this, task -> {
-                                                    if (task.isSuccessful()) {
-                                                        // Login successful
-                                                        Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                                                        Intent intent = new Intent(Login.this, CreateProfile.class); // Replace with your Dashboard activity
-                                                        new Handler().postDelayed(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                startActivity(intent);
-                                                                finish();
-                                                            }
-                                                        }, 1000);  // 1 second delay
-                                                    } else {
-                                                        // Authentication failed
-                                                        Toast.makeText(Login.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                });
+                                        if (email != null) {
+                                            mAuth.signInWithEmailAndPassword(email, password)
+                                                    .addOnCompleteListener(Login.this, task -> {
+                                                        if (task.isSuccessful()) {
+                                                            // Login successful
+                                                            Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                                                            Intent intent = new Intent(Login.this, Dashboard.class);
+
+                                                            new Handler().postDelayed(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    startActivity(intent);
+                                                                    finish();
+                                                                }
+                                                            }, 1000);  // 1 second delay
+                                                        } else {
+                                                            // Authentication failed
+                                                            Toast.makeText(Login.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                        } else {
+                                            // Email not found in the database
+                                            Toast.makeText(Login.this, "User email not found", Toast.LENGTH_SHORT).show();
+                                        }
                                     } else {
-                                        // Email not found in the database
-                                        Toast.makeText(Login.this, "User email not found", Toast.LENGTH_SHORT).show();
+                                        // Proceed to CreateProfile
+                                        if (email != null) {
+                                            mAuth.signInWithEmailAndPassword(email, password)
+                                                    .addOnCompleteListener(Login.this, task -> {
+                                                        if (task.isSuccessful()) {
+                                                            FirebaseUser user = mAuth.getCurrentUser();
+                                                            // Login successful, go to CreateProfile activity
+                                                            Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                                                            Intent intent = new Intent(Login.this, CreateProfile.class);
+                                                            intent.putExtra("username", username); // For username in creating profile
+
+                                                            new Handler().postDelayed(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    startActivity(intent);
+                                                                    finish();
+                                                                }
+                                                            }, 1000);  // 1 second delay
+                                                        } else {
+                                                            // Authentication failed
+                                                            Toast.makeText(Login.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                        }
                                     }
                                 }
                             } else {
@@ -118,14 +150,13 @@ public class Login extends AppCompatActivity {
 
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
-                            // Handle database error
+                            // Database error
                             Toast.makeText(Login.this, "Database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
             }
         });
-
 
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override

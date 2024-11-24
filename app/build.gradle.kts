@@ -34,7 +34,7 @@ android {
 
 dependencies {
     implementation(libs.firebase.database)
-    implementation(libs.firebase.auth)
+
     implementation(libs.firebase.storage)
     dependencies {
         implementation(platform("com.google.firebase:firebase-bom:33.6.0"))

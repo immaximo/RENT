@@ -1,6 +1,7 @@
 package com.example.mobilecomputing;
 
 public class HelperClass {
+    // For Signup
     private String email;
     private String username;
 
@@ -24,5 +25,5 @@ public class HelperClass {
     public void setUsername(String username) {
         this.username = username;
     }
-
 }
+

@@ -8,10 +8,9 @@ material = "1.12.0"
 activity = "1.9.3"
 constraintlayout = "2.2.0"
 firebaseDatabase = "21.0.0"
-firebaseAuth = "21.4.3" # Added Firebase Auth version
 firebaseStorage = "21.0.1"
 glide = "4.15.1"
-googleGmsGoogleServices = "4.4.2"
+googleGmsGoogleServices = "4.4.2" # Added Glide version
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,10 +21,9 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" } # Added Firebase Auth
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" } # Added Glide library
+glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" } # Added Glide compiler
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

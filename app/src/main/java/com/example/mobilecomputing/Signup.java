@@ -100,9 +100,6 @@ public class Signup extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
-                                    // User created successfully in Firebase Auth
-                                    FirebaseUser user = mAuth.getCurrentUser();
-
                                     // Initialize Firebase Realtime Database reference
                                     FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
                                     DatabaseReference reference = database.getReference("users");
