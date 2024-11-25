@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -132,7 +133,10 @@ public class UploadActivity extends AppCompatActivity {
         // Upload image to Firebase Storage
         fileRef.putFile(selectedImageUri)
                 .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String imageUrl = uri.toString(); // Get the URL of the uploaded image
+                    String imageUrl = uri.toString(); // Get the URL of the uploaded image (this is the public URL)
+
+                    // Log the image URL to ensure it's correct
+                    Log.d("UploadActivity", "Image URL: " + imageUrl);
 
                     // Save product details to Firebase Realtime Database
                     String productId = databaseReference.push().getKey();
@@ -144,6 +148,9 @@ public class UploadActivity extends AppCompatActivity {
                         productData.put("description", description);
                         productData.put("imageUrl", imageUrl); // Store the image URL
 
+                        // Log product data before pushing it to Firebase
+                        Log.d("UploadActivity", "Product data: " + productData);
+
                         // Store the product data in Firebase Realtime Database
                         databaseReference.child(productId).setValue(productData)
                                 .addOnCompleteListener(task -> {
@@ -152,12 +159,14 @@ public class UploadActivity extends AppCompatActivity {
                                         clearFields(); // Clear input fields after upload
                                     } else {
                                         Toast.makeText(UploadActivity.this, "Failed to upload product", Toast.LENGTH_SHORT).show();
+                                        Log.e("Firebase", "Error uploading product: " + task.getException().getMessage());
                                     }
                                 });
                     }
                 }))
                 .addOnFailureListener(e -> Toast.makeText(UploadActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show());
     }
+
 
     private void clearFields() {
         productName.setText("");

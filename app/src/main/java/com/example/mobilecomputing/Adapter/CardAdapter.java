@@ -41,13 +41,15 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         CardItem item = items.get(position);
 
         // Bind data to the TextView
-        holder.textView.setText(item.getText());
+        holder.nameTextView.setText(item.getName());
+        holder.priceTextView.setText(item.getPrice());
+        holder.descriptionTextView.setText(item.getDescription());
 
         // Load image into the ImageView using Glide
         Glide.with(holder.imageView.getContext())
                 .load(item.getImageUrl())
                 .placeholder(R.drawable.blue) // Optional placeholder image
-                .error(R.drawable.uploadimg)             // Optional error image
+                .error(R.drawable.uploadimg)  // Optional error image
                 .into(holder.imageView);
     }
 
@@ -64,13 +66,17 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textView;
+        TextView nameTextView;
+        TextView priceTextView;
+        TextView descriptionTextView;
         ImageView imageView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            textView = itemView.findViewById(R.id.card_text);   // Replace with actual ID
-            imageView = itemView.findViewById(R.id.card_image); // Replace with actual ID
+            nameTextView = itemView.findViewById(R.id.card_text);          // Replace with actual ID
+            priceTextView = itemView.findViewById(R.id.card_price);        // Replace with actual ID
+            descriptionTextView = itemView.findViewById(R.id.card_description); // Replace with actual ID
+            imageView = itemView.findViewById(R.id.card_image);           // Replace with actual ID
         }
     }
 }
