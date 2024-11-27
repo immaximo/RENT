@@ -34,8 +34,9 @@ android {
 
 dependencies {
     implementation(libs.firebase.database)
-
+    implementation ("com.google.android.libraries.places:places:4.1.0")
     implementation(libs.firebase.storage)
+    implementation ("com.squareup.picasso:picasso:2.8")
     dependencies {
         implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
         implementation("com.google.firebase:firebase-auth")
