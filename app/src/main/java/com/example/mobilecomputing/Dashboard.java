@@ -2,6 +2,7 @@ package com.example.mobilecomputing;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -74,12 +75,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         cardAdapter = new CardAdapter(itemList);
         recyclerView.setAdapter(cardAdapter);
 
-        // Add a temporary item for testing
-        itemList.add(new CardItem("Temporary Item", "This is a temporary item for testing", R.drawable.blue));  // Example item
-        cardAdapter.notifyItemInserted(itemList.size() - 1);
 
-        // Fetch product data from Firebase Realtime Database
-        fetchProductData();
+        // Load products from Firebase
+        loadProductsFromFirebase();
 
         searchView = findViewById(R.id.search_view);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -90,41 +88,45 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Update the adapter with a filtered list
-                List<CardItem> filteredList = new ArrayList<>();
-                for (CardItem item : itemList) {
-                    if (item.getText().toLowerCase().contains(newText.toLowerCase())) {
-                        filteredList.add(item);
-                    }
-                }
-                cardAdapter.updateItems(filteredList);
-                return false;
+                filterItems(newText);
+                return true;
             }
         });
     }
 
+    private void filterItems(String query) {
+        List<CardItem> filteredList = new ArrayList<>();
+        for (CardItem item : itemList) {
+            if (item.getName().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(item);
+            }
+        }
+        cardAdapter.updateItems(filteredList);
+    }
 
-    private void fetchProductData() {
+
+    private void loadProductsFromFirebase() {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                itemList.clear(); // Clear the list before adding new data
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                itemList.clear();
+                for (DataSnapshot productSnapshot : snapshot.getChildren()) {
+                    String name = productSnapshot.child("name").getValue(String.class);
+                    String imageUrl = productSnapshot.child("imageUrl").getValue(String.class);
+                    String price = productSnapshot.child("price").getValue(String.class);
+                    String description = productSnapshot.child("description").getValue(String.class);
 
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    // Get product details
-                    CardItem item = snapshot.getValue(CardItem.class);
-                    if (item != null) {
-                        itemList.add(item); // Add the item to the list
+                    if (name != null && imageUrl != null && price != null && description != null) {
+                        itemList.add(new CardItem(name, imageUrl, price, description));
                     }
                 }
-
-                // Notify the adapter that data has changed
-                cardAdapter.notifyDataSetChanged();
+                cardAdapter.updateItems(itemList);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(Dashboard.this, "Failed to load data", Toast.LENGTH_SHORT).show();
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("Dashboard", "Failed to load products: " + error.getMessage());
+                Toast.makeText(Dashboard.this, "Failed to load products.", Toast.LENGTH_SHORT).show();
             }
         });
     }
