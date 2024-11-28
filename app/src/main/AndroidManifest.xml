@@ -51,6 +51,9 @@
             android:name=".Activity.ProfileActivity"
             android:exported="true" />
 
+        <activity android:name=".Activity.EditProfileActivity"
+            android:exported="true"/>
+
         <activity
             android:name=".Activity.RentHistory"
             android:exported="true" />

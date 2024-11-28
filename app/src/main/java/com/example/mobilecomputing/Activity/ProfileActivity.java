@@ -14,9 +14,10 @@ import com.example.mobilecomputing.R;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private TextView fullName, email, aboutMe, contact, editBtn, aboutEditBtn, contactEditBtn;
+    private TextView fullName, email, aboutMe, contact;
     private EditText fullNameInput, emailInput, aboutMeInput, contactInput;
     private ImageView backArrow;
+    private Button editButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,33 +35,24 @@ public class ProfileActivity extends AppCompatActivity {
             // Go back to Dashboard
             Intent intent = new Intent(ProfileActivity.this, Dashboard.class);
             startActivity(intent);
-            finish();  // Optional: To finish ProfileActivity and remove it from the back stack
+            finish();
         });
 
         // Find views
         fullName = findViewById(R.id.user_full_name);
         email = findViewById(R.id.user_email);
-        aboutMe = findViewById(R.id.user_about_me);  // About Me TextView
-        editBtn = findViewById(R.id.editbtn);  // Link the "Edit" button for Full Name
-        aboutEditBtn = findViewById(R.id.abouteditbtn);  // Edit button for About Me
-        contactEditBtn = findViewById(R.id.contacteditbtn);  // Edit button for Contact
+        aboutMe = findViewById(R.id.user_about_me);
         fullNameInput = findViewById(R.id.full_name_input);
         emailInput = findViewById(R.id.email_input);
-        aboutMeInput = findViewById(R.id.about_me_input);  // About Me EditText
+        aboutMeInput = findViewById(R.id.about_me_input);
 
-
-        // Toggle edit mode when edit button for Full Name is clicked
-        editBtn.setOnClickListener(view -> toggleEditMode(fullName, fullNameInput));
-
-        // Toggle edit mode when edit button for About Me is clicked
-        aboutEditBtn.setOnClickListener(view -> toggleEditMode(aboutMe, aboutMeInput));
-
-        // Toggle edit mode when edit button for Contact is clicked
-        contactEditBtn.setOnClickListener(view -> toggleEditMode(email, emailInput));
-
-        // Optionally, handle saving profile data here
-        Button saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(v -> saveProfileData());
+        // Find Edit Profile button
+        editButton = findViewById(R.id.edit_button);
+        editButton.setOnClickListener(view -> {
+            // Navigate to EditProfileActivity
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void toggleEditMode(TextView textView, EditText editText) {
@@ -74,7 +66,6 @@ public class ProfileActivity extends AppCompatActivity {
         String updatedEmail = emailInput.getText().toString().trim();
         String updatedAboutMe = aboutMeInput.getText().toString().trim();
 
-
         // Check if the data is not empty before updating
         if (!updatedFullName.isEmpty()) {
             fullName.setText(updatedFullName);
@@ -85,7 +76,6 @@ public class ProfileActivity extends AppCompatActivity {
         if (!updatedAboutMe.isEmpty()) {
             aboutMe.setText(updatedAboutMe);
         }
-
 
         // Hide the EditText and show TextView again for the fields that were edited
         if (fullNameInput.getVisibility() == View.VISIBLE) {

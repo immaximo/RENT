@@ -236,15 +236,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1" />
 
-                            <TextView
-                                android:id="@+id/editbtn"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Edit"
-                                android:fontFamily="@font/nunito"
-                                android:textColor="@color/blue"
-                                android:layout_marginEnd="10dp"
-                                android:textSize="14sp" />
+
 
 
                         </LinearLayout>
@@ -309,15 +301,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1" />
 
-                            <TextView
-                                android:id="@+id/abouteditbtn"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Edit"
-                                android:fontFamily="@font/nunito"
-                                android:textColor="@color/blue"
-                                android:layout_marginEnd="10dp"
-                                android:textSize="14sp" />
+
                         </LinearLayout>
 
                         <TextView
@@ -371,14 +355,6 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
-                            android:id="@+id/contacteditbtn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Edit"
-                            android:textColor="@color/blue"
-                            android:layout_marginEnd="10dp"
-                            android:textSize="14sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -499,14 +475,14 @@
                     </LinearLayout>
                 </LinearLayout>
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/save_button"
+                    android:id="@+id/edit_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="55dp"
                     android:background="@drawable/button_bg"
                     android:padding="12dp"
-                    android:text="Save Information"
+                    android:text="Edit Profile"
                     android:textColor="#FFFFFF" />
 
 
