@@ -1,23 +1,52 @@
 package com.example.mobilecomputing.Activity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import com.bumptech.glide.Glide;
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
+import com.example.mobilecomputing.UpdateProfileHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private TextView fullName, email, aboutMe, contact;
-    private EditText fullNameInput, emailInput, aboutMeInput, contactInput;
-    private ImageView backArrow;
+    private TextView fullName, email, aboutMe, contact, user, address;
+    private ImageView backArrow, profileImage;
     private Button editButton;
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String email = currentUser.getEmail(); // Re-fetch the email
+            retrieveUsernameByEmail(email); // Reload profile data
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +71,11 @@ public class ProfileActivity extends AppCompatActivity {
         fullName = findViewById(R.id.user_full_name);
         email = findViewById(R.id.user_email);
         aboutMe = findViewById(R.id.user_about_me);
-        fullNameInput = findViewById(R.id.full_name_input);
-        emailInput = findViewById(R.id.email_input);
-        aboutMeInput = findViewById(R.id.about_me_input);
+        address = findViewById(R.id.address_input);
+        contact = findViewById(R.id.number);
+        user = findViewById(R.id.username);
+        profileImage = findViewById(R.id.profile);
+
 
         // Find Edit Profile button
         editButton = findViewById(R.id.edit_button);
@@ -52,47 +83,77 @@ public class ProfileActivity extends AppCompatActivity {
             // Navigate to EditProfileActivity
             Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
             startActivity(intent);
+
         });
 
-        // Optionally, handle saving profile data here
-        Button saveButton = findViewById(R.id.edit_button);
-        saveButton.setOnClickListener(v -> saveProfileData());
+        // Get the username passed from the Login activity
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String email = currentUser.getEmail();  // Use the email to search for the user
+            retrieveUsernameByEmail(email);
+        }
     }
 
-    private void toggleEditMode(TextView textView, EditText editText) {
-        boolean isEditing = editText.getVisibility() == View.VISIBLE;
-        textView.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-        editText.setVisibility(isEditing ? View.GONE : View.VISIBLE);
+    private void retrieveUsernameByEmail(String email) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference userRef = database.getReference("users");
+
+        // Use orderByChild to filter by the email field
+        userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String username = snapshot.child("username").getValue(String.class);
+                    user.setText(username); // For username
+                    retrieveUserData(username); // For everything else
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+        });
     }
 
-    private void saveProfileData() {
-        String updatedFullName = fullNameInput.getText().toString().trim();
-        String updatedEmail = emailInput.getText().toString().trim();
-        String updatedAboutMe = aboutMeInput.getText().toString().trim();
+    private void retrieveUserData(String username) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference userRef = database.getReference("users").child(username);
 
-        // Check if the data is not empty before updating
-        if (!updatedFullName.isEmpty()) {
-            fullName.setText(updatedFullName);
-        }
-        if (!updatedEmail.isEmpty()) {
-            email.setText(updatedEmail);
-        }
-        if (!updatedAboutMe.isEmpty()) {
-            aboutMe.setText(updatedAboutMe);
-        }
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String fullNameText = dataSnapshot.child("profile").child("full").getValue(String.class);
+                String emailText = dataSnapshot.child("email").getValue(String.class);
+                String aboutMeText = dataSnapshot.child("profile").child("userBio").getValue(String.class);
+                String addressText = dataSnapshot.child("profile").child("userAddress").getValue(String.class);
+                String contactText = dataSnapshot.child("profile").child("userNumber").getValue(String.class);
+                String profileImageUrl = dataSnapshot.child("profile").child("userPhoto").getValue(String.class);
 
-        // Hide the EditText and show TextView again for the fields that were edited
-        if (fullNameInput.getVisibility() == View.VISIBLE) {
-            fullNameInput.setVisibility(View.GONE);
-            fullName.setVisibility(View.VISIBLE);
-        }
-        if (emailInput.getVisibility() == View.VISIBLE) {
-            emailInput.setVisibility(View.GONE);
-            email.setVisibility(View.VISIBLE);
-        }
-        if (aboutMeInput.getVisibility() == View.VISIBLE) {
-            aboutMeInput.setVisibility(View.GONE);
-            aboutMe.setVisibility(View.VISIBLE);
-        }
+                // Set data to views
+                fullName.setText(fullNameText);
+                email.setText(emailText);
+                aboutMe.setText(aboutMeText);
+                address.setText(addressText);
+                contact.setText(contactText);
+
+                // Load the profile image using the URL from the database
+                if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                    Glide.with(getApplicationContext())
+                            .load(profileImageUrl)  // URL directly from the database
+                            .placeholder(R.drawable.blank_profile)  // Placeholder
+                            .error(R.drawable.blank_profile)  // Fallback image
+                            .into(profileImage);
+                } else {
+                    // If can't find photo
+                    profileImage.setImageResource(R.drawable.blank_profile);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Handle possible errors here
+            }
+        });
     }
 }

@@ -250,7 +250,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="25dp"
                             android:text="name"
-                            android:textColor="@color/gray"
+                            android:textColor="#000000"
                             android:textSize="16sp" />
 
                         <EditText
@@ -274,15 +274,15 @@
                 <!--About Me Card-->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
+                    android:layout_height="wrap_content"
                     android:background="@drawable/circularbordersolid"
-                    android:orientation="vertical"
                     android:elevation="2dp"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical">
 
                         <LinearLayout
@@ -293,9 +293,9 @@
                                 android:id="@+id/about_me_label"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/nunito"
                                 android:text="About me"
                                 android:textColor="@color/black"
-                                android:fontFamily="@font/nunito"
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
 
@@ -313,8 +313,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="25dp"
                             android:text="description"
-                            android:textColor="@color/gray"
-                            android:textSize="16sp"/>
+                            android:textColor="#000000"
+                            android:textSize="16sp" />
 
                         <EditText
                             android:id="@+id/about_me_input"
@@ -348,9 +348,10 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Contact"
-                            android:textSize="17sp"
                             android:fontFamily="@font/nunito"
+                            android:text="Contact"
+                            android:textColor="#000000"
+                            android:textSize="17sp"
                             android:textStyle="bold" />
 
                         <Space
@@ -385,7 +386,7 @@
                                 android:layout_marginLeft="20dp"
                                 android:fontFamily="@font/nunito"
                                 android:text="contact num"
-                                android:textColor="@color/black"
+                                android:textColor="#000000"
                                 android:textSize="15sp" />
                         </LinearLayout>
 
@@ -407,10 +408,10 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="20dp"
-                                android:textColor="@color/black"
+                                android:fontFamily="@font/nunito"
                                 android:text="Email"
-                                android:textSize="15sp"
-                                android:fontFamily="@font/nunito" />
+                                android:textColor="#000000"
+                                android:textSize="15sp" />
                             <!-- EditText for Email -->
                             <EditText
                                 android:id="@+id/email_input"
