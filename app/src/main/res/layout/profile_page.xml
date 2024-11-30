@@ -80,7 +80,7 @@
                         android:layout_width="150dp"
                         android:layout_height="90dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/blue" />
+                         />
 
                 </androidx.cardview.widget.CardView>
 
@@ -377,7 +377,8 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:background="@drawable/grey_border"
-                                android:padding="10dp" />
+                                android:padding="10dp"
+                                android:src="@drawable/icon_phone"/>
 
                             <TextView
                                 android:id="@+id/number"
@@ -401,7 +402,8 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:background="@drawable/grey_border"
-                                android:padding="10dp" />
+                                android:padding="10dp"
+                                android:src="@drawable/icon_email"/>
 
                             <TextView
                                 android:id="@+id/user_email"
@@ -413,17 +415,7 @@
                                 android:textColor="#000000"
                                 android:textSize="15sp" />
                             <!-- EditText for Email -->
-                            <EditText
-                                android:id="@+id/email_input"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:hint="Enter email"
-                                android:inputType="textEmailAddress"
-                                android:textColor="@color/black"
-                                android:textColorHint="@color/black"
-                                android:textSize="16sp"
-                                android:visibility="gone" />
+
                         </LinearLayout>
 
                         <LinearLayout
@@ -437,10 +429,11 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:background="@drawable/grey_border"
-                                android:padding="10dp" />
+                                android:padding="10dp"
+                                android:src="@drawable/icon_address"/>
 
                             <TextView
-                                android:id="@+id/address_input"
+                                android:id="@+id/address_user"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="20dp"
@@ -457,6 +450,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:layout_marginBottom="90dp"
                     android:background="@drawable/button_bg"
                     android:padding="12dp"
                     android:text="Edit Profile"

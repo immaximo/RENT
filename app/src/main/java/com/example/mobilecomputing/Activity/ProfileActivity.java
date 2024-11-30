@@ -61,7 +61,7 @@ public class ProfileActivity extends AppCompatActivity {
         fullName = findViewById(R.id.user_full_name);
         email = findViewById(R.id.user_email);
         aboutMe = findViewById(R.id.user_about_me);
-        address = findViewById(R.id.address_input);
+        address = findViewById(R.id.address_user);
         contact = findViewById(R.id.number);
         user = findViewById(R.id.username);
         profileImage = findViewById(R.id.profile);

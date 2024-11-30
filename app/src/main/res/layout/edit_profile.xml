@@ -80,7 +80,7 @@
                         android:layout_width="150dp"
                         android:layout_height="90dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/blue" />
+                         />
 
                 </androidx.cardview.widget.CardView>
 
@@ -298,7 +298,8 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:background="@drawable/grey_border"
-                                android:padding="10dp" />
+                                android:padding="10dp"
+                                android:src="@drawable/icon_phone"/>
 
                             <EditText
                                 android:id="@+id/user_contact"
@@ -324,7 +325,8 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:background="@drawable/grey_border"
-                                android:padding="10dp" />
+                                android:padding="10dp"
+                                android:src="@drawable/icon_address"/>
 
                             <EditText
                                 android:id="@+id/user_address"
@@ -341,17 +343,17 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/save_profile_button"
-                    android:layout_width="112dp"
+                    android:layout_width="130dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="16dp"
-                    android:background="@color/blue"
+                    android:layout_marginBottom="50dp"
+                    android:background="@drawable/button_bg"
                     android:padding="10dp"
                     android:text="Save Profile"
                     android:textColor="@color/white" />
-
 
 
             </LinearLayout>
