@@ -13,13 +13,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -48,8 +56,8 @@ public class UploadActivity extends AppCompatActivity {
         setContentView(R.layout.upload_item);
 
         // Initialize Firebase
-        storageReference = FirebaseStorage.getInstance().getReference("product_images");
-        databaseReference = FirebaseDatabase.getInstance().getReference("products");
+        storageReference = FirebaseStorage.getInstance("gs://mobilecomputing-f9ac0.firebasestorage.app").getReference("product_images");
+        databaseReference = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("products");
 
         // Initialize Views
         uploadImageContainer = findViewById(R.id.upload_image_container);
@@ -66,7 +74,7 @@ public class UploadActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(UploadActivity.this, Dashboard.class); // Change to your DashboardActivity
                 startActivity(intent);
-                finish(); // Optional: close this activity
+                finish();
             }
         });
 
@@ -78,18 +86,48 @@ public class UploadActivity extends AppCompatActivity {
             }
         });
 
-        // Submit product button click listener
         submitProductButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                uploadProduct();
+                String email = null;
+
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    email = currentUser.getEmail();
+                }
+
+                FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+                DatabaseReference userRef = database.getReference("users");
+
+                userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String currentuser = snapshot.child("username").getValue(String.class);
+                            uploadProduct(currentuser);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+
+                });
             }
         });
     }
 
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        selectedImageUri = result.getData().getData();
+                    Glide.with(this).load(selectedImageUri).into(uploadIcon);
+                }
+            });
+
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        imagePickerLauncher.launch(intent);
     }
 
     @Override
@@ -115,8 +153,7 @@ public class UploadActivity extends AppCompatActivity {
         }
     }
 
-
-    private void uploadProduct() {
+    private void uploadProduct(String currentuser) {
         String name = productName.getText().toString().trim();
         String price = productPrice.getText().toString().trim();
         String description = productDescription.getText().toString().trim();
@@ -135,40 +172,59 @@ public class UploadActivity extends AppCompatActivity {
                 .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
                     String imageUrl = uri.toString(); // Get the URL of the uploaded image (this is the public URL)
 
-                    // Log the image URL to ensure it's correct
-                    Log.d("UploadActivity", "Image URL: " + imageUrl);
+                    // Reference to the user's location (userAddress)
+                    DatabaseReference locationRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                            .getReference("users").child(currentuser).child("profile").child("userAddress");
 
-                    // Save product details to Firebase Realtime Database
-                    String productId = databaseReference.push().getKey();
-                    if (productId != null) {
-                        Map<String, Object> productData = new HashMap<>();
-                        productData.put("id", productId);
-                        productData.put("name", name);
-                        productData.put("price", price);
-                        productData.put("description", description);
-                        productData.put("imageUrl", imageUrl); // Store the image URL
+                    // Fetch the address value from Firebase
+                    locationRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                String location = dataSnapshot.getValue(String.class); // Get the location as a String
 
-                        // Log product data before pushing it to Firebase
-                        Log.d("UploadActivity", "Product data: " + productData);
+                                // Save product details to Firebase Realtime Database
+                                String productId = databaseReference.push().getKey();
+                                if (productId != null) {
+                                    Map<String, Object> productData = new HashMap<>();
+                                    productData.put("uploader", currentuser);
+                                    productData.put("id", productId);
+                                    productData.put("name", name);
+                                    productData.put("price", price);
+                                    productData.put("description", description);
+                                    productData.put("location", location); // Store the actual location value (not the reference)
+                                    productData.put("imageUrl", imageUrl); // Store the image URL
 
-                        // Store the product data in Firebase Realtime Database
-                        databaseReference.child(productId).setValue(productData)
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(UploadActivity.this, "Product uploaded successfully", Toast.LENGTH_SHORT).show();
-                                        clearFields(); // Clear input fields after upload
-                                    } else {
-                                        Toast.makeText(UploadActivity.this, "Failed to upload product", Toast.LENGTH_SHORT).show();
-                                        Log.e("Firebase", "Error uploading product: " + task.getException().getMessage());
-                                    }
-                                });
-                    }
+                                    // Store the product data in Firebase Realtime Database
+                                    databaseReference.child(productId).setValue(productData)
+                                            .addOnCompleteListener(task -> {
+                                                if (task.isSuccessful()) {
+                                                    Toast.makeText(UploadActivity.this, "Product uploaded successfully", Toast.LENGTH_SHORT).show();
+                                                    clearFields(); // Clear input fields after upload
+                                                } else {
+                                                    Toast.makeText(UploadActivity.this, "Failed to upload product", Toast.LENGTH_SHORT).show();
+                                                    Log.e("Firebase", "Error uploading product: " + task.getException().getMessage());
+                                                }
+                                            });
+                                }
+                            } else {
+                                // Handle the case where the location doesn't exist in the database
+                                Toast.makeText(UploadActivity.this, "Location not found", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // Handle possible errors, like no internet connection
+                            Toast.makeText(UploadActivity.this, "Failed to fetch location", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
                 }))
                 .addOnFailureListener(e -> Toast.makeText(UploadActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show());
     }
 
-
-    private void clearFields() {
+        private void clearFields() {
         productName.setText("");
         productPrice.setText("");
         productDescription.setText("");
