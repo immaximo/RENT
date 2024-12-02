@@ -29,6 +29,7 @@
             android:layout_height="wrap_content"
             android:text="item here"
             android:textSize="16sp"
+            android:textColor="@color/black"
             android:textStyle="bold" />
 
 
@@ -53,6 +54,7 @@
             android:layout_marginRight="15dp"
             android:text="10peso"
             android:textSize="17sp"
+            android:textColor="@color/black"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -71,7 +73,7 @@
                 android:textSize="18sp" />
 
             <TextView
-                android:id="@+id/quantity_text"
+                android:id="@+id/item_quantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="10dp"

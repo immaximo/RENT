@@ -1,5 +1,7 @@
 package com.example.mobilecomputing.Adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.mobilecomputing.Activity.ItemDetailsActivity;
 import com.example.mobilecomputing.R;
 
 import java.util.List;
@@ -17,40 +20,48 @@ import java.util.List;
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
     private List<CardItem> items;
+    private Context context;
 
     // Constructor
-    public CardAdapter(List<CardItem> items) {
+    public CardAdapter(Context context, List<CardItem> items) {
         if (items != null) {
             this.items = items;
         } else {
             throw new IllegalArgumentException("Item list cannot be null");
         }
+        this.context = context;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the item layout
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Get the current product
         CardItem product = items.get(position);
 
-        // Bind data to TextViews
         holder.nameTextView.setText(product.getName());
         holder.priceTextView.setText("Price: $" + product.getPrice());
         holder.descriptionTextView.setText(product.getDescription());
 
-        // Load image into the ImageView using Glide
         Glide.with(holder.imageView.getContext())
                 .load(product.getImageUrl())
-                .placeholder(R.drawable.blue)  // Placeholder image
-                .error(R.drawable.uploadimg)  // Error image
+                .placeholder(R.drawable.blue)
+                .error(R.drawable.uploadimg)
                 .into(holder.imageView);
+
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ItemDetailsActivity.class);
+            intent.putExtra("name", product.getName());
+            intent.putExtra("price", product.getPrice());
+            intent.putExtra("description", product.getDescription());
+            intent.putExtra("imageUrl", product.getImageUrl());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -58,13 +69,11 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         return items.size();
     }
 
-    // Update the list with new items and refresh the RecyclerView
     public void updateItems(List<CardItem> newItems) {
         items = newItems;
         notifyDataSetChanged();
     }
 
-    // ViewHolder class
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView nameTextView;
         TextView priceTextView;
