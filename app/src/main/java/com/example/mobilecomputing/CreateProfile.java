@@ -73,8 +73,12 @@ public class CreateProfile extends AppCompatActivity {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent intent = result.getData();
                         if (intent != null) {
+                            // Get the selected place from the intent
                             Place place = Autocomplete.getPlaceFromIntent(intent);
-                            address.setText(place.getName());
+
+                            // Display the full formatted address
+                            String fullAddress = place.getAddress();  // This gives you the full formatted address
+                            address.setText(fullAddress);  // Set the full address in the address EditText or TextView
                         }
                     } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
                         // Canceled
@@ -83,11 +87,13 @@ public class CreateProfile extends AppCompatActivity {
 
         address.setFocusable(false);
         address.setOnClickListener(view -> {
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.FORMATTED_ADDRESS);  // Changed 'ADDRESS' to 'FORMATTED_ADDRESS'
 
             // Create the intent for Autocomplete
             Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
                     .build(this);
+
+            // Launch the autocomplete intent
             startAutocomplete.launch(intent);
         });
 
