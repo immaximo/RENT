@@ -72,8 +72,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
 
         // Initialize the list and adapter
         itemList = new ArrayList<>();
-        cardAdapter = new CardAdapter(itemList);
+        cardAdapter = new CardAdapter(this, itemList);
         recyclerView.setAdapter(cardAdapter);
+
 
 
         // Load products from Firebase
