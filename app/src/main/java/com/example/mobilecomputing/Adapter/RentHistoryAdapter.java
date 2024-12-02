@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.mobilecomputing.Activity.RentHistory;
 import com.example.mobilecomputing.R;
 import java.util.List;
@@ -28,7 +27,7 @@ public class RentHistoryAdapter extends RecyclerView.Adapter<RentHistoryAdapter.
     public void onBindViewHolder(ViewHolder holder, int position) {
         RentHistory.RentHistoryItem item = rentHistoryList.get(position);
         holder.itemName.setText(item.getItemName());
-        holder.rentDates.setText(item.getRentStartDate() + " to " + item.getRentEndDate());
+        holder.price.setText("Price: " + item.getPrice()); // Display only name and price
     }
 
     @Override
@@ -38,12 +37,12 @@ public class RentHistoryAdapter extends RecyclerView.Adapter<RentHistoryAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView itemName;
-        TextView rentDates;
+        TextView price;
 
         public ViewHolder(View itemView) {
             super(itemView);
             itemName = itemView.findViewById(R.id.item_name);
-            rentDates = itemView.findViewById(R.id.rent_dates);
+            price = itemView.findViewById(R.id.rent_price);
         }
     }
 }
