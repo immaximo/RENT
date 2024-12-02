@@ -124,7 +124,8 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                     String description = productSnapshot.child("description").getValue(String.class);
 
                     if (name != null && imageUrl != null && price != null && description != null) {
-                        itemList.add(new CardItem(name, imageUrl, price, description));
+                        // Now passing the productId to the CardItem
+                        itemList.add(new CardItem(name, imageUrl, price, description, productId));
                     }
                 }
 
@@ -137,10 +138,6 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             }
         });
     }
-
-
-
-
 
     // Override onNavigationItemSelected method from NavigationView.OnNavigationItemSelectedListener
     @Override

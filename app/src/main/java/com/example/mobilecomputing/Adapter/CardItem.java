@@ -5,16 +5,18 @@ public class CardItem {
     private String imageUrl;
     private String price;
     private String description;
+    private String productId; // Added productId field
 
-    // Constructor without productId
-    public CardItem(String name, String imageUrl, String price, String description) {
+    // Constructor
+    public CardItem(String name, String imageUrl, String price, String description, String productId) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.price = price;
         this.description = description;
+        this.productId = productId; // Initialize productId
     }
 
-    // Getter methods (if needed)
+    // Getters
     public String getName() {
         return name;
     }
@@ -30,5 +32,8 @@ public class CardItem {
     public String getDescription() {
         return description;
     }
-}
 
+    public String getProductId() {
+        return productId;
+    }
+}

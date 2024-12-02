@@ -53,13 +53,14 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
                 .error(R.drawable.uploadimg)
                 .into(holder.imageView);
 
-
+        // Set click listener to pass product details to ItemDetailsActivity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ItemDetailsActivity.class);
             intent.putExtra("name", product.getName());
             intent.putExtra("price", product.getPrice());
             intent.putExtra("description", product.getDescription());
             intent.putExtra("imageUrl", product.getImageUrl());
+            intent.putExtra("productId", product.getProductId()); // Add productId
             context.startActivity(intent);
         });
     }
@@ -69,6 +70,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         return items.size();
     }
 
+    // Method to update items
     public void updateItems(List<CardItem> newItems) {
         items = newItems;
         notifyDataSetChanged();
