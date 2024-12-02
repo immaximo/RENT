@@ -6,6 +6,7 @@ public class CardItem {
     private String price;
     private String description;
 
+    // Constructor without productId
     public CardItem(String name, String imageUrl, String price, String description) {
         this.name = name;
         this.imageUrl = imageUrl;
@@ -13,6 +14,7 @@ public class CardItem {
         this.description = description;
     }
 
+    // Getter methods (if needed)
     public String getName() {
         return name;
     }
@@ -29,3 +31,4 @@ public class CardItem {
         return description;
     }
 }
+

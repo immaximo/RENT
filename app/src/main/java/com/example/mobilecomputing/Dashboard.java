@@ -68,7 +68,7 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 items per row
 
         // Initialize Firebase Database
-        databaseReference = FirebaseDatabase.getInstance().getReference("products");
+        databaseReference = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("products");
 
         // Initialize the list and adapter
         itemList = new ArrayList<>();
@@ -110,7 +110,13 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 itemList.clear();
+
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
+                    String productId = productSnapshot.getKey();
+                    if (productId == null) {
+                        continue;
+                    }
+
                     String name = productSnapshot.child("name").getValue(String.class);
                     String imageUrl = productSnapshot.child("imageUrl").getValue(String.class);
                     String price = productSnapshot.child("price").getValue(String.class);
@@ -120,16 +126,20 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                         itemList.add(new CardItem(name, imageUrl, price, description));
                     }
                 }
+
                 cardAdapter.updateItems(itemList);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Dashboard", "Failed to load products: " + error.getMessage());
                 Toast.makeText(Dashboard.this, "Failed to load products.", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+
+
+
 
     // Override onNavigationItemSelected method from NavigationView.OnNavigationItemSelectedListener
     @Override

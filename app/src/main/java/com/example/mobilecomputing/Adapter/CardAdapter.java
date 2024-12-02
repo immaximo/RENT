@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide; // Correct import for Glide
+import com.bumptech.glide.Glide;
 import com.example.mobilecomputing.R;
 
 import java.util.List;
@@ -37,20 +37,25 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Get the current item
-        CardItem item = items.get(position);
+        // Get the current product
+        CardItem product = items.get(position);
 
-        // Bind data to the TextView
-        holder.nameTextView.setText(item.getName());
-        holder.priceTextView.setText(item.getPrice());
-        holder.descriptionTextView.setText(item.getDescription());
+        // Bind data to TextViews
+        holder.nameTextView.setText(product.getName());
+        holder.priceTextView.setText("Price: $" + product.getPrice());
+        holder.descriptionTextView.setText(product.getDescription());
 
         // Load image into the ImageView using Glide
         Glide.with(holder.imageView.getContext())
-                .load(item.getImageUrl())
-                .placeholder(R.drawable.blue) // Optional placeholder image
-                .error(R.drawable.uploadimg)  // Optional error image
+                .load(product.getImageUrl())
+                .placeholder(R.drawable.blue)  // Placeholder image
+                .error(R.drawable.uploadimg)  // Error image
                 .into(holder.imageView);
+    }
+
+    @Override
+    public int getItemCount() {
+        return items.size();
     }
 
     // Update the list with new items and refresh the RecyclerView
@@ -59,13 +64,8 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
-    @Override
-    public int getItemCount() {
-        return items.size();
-    }
-
+    // ViewHolder class
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         TextView nameTextView;
         TextView priceTextView;
         TextView descriptionTextView;
@@ -73,10 +73,10 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            nameTextView = itemView.findViewById(R.id.card_text);          // Replace with actual ID
-            priceTextView = itemView.findViewById(R.id.card_price);        // Replace with actual ID
-            descriptionTextView = itemView.findViewById(R.id.card_description); // Replace with actual ID
-            imageView = itemView.findViewById(R.id.card_image);           // Replace with actual ID
+            nameTextView = itemView.findViewById(R.id.card_text);
+            priceTextView = itemView.findViewById(R.id.card_price);
+            descriptionTextView = itemView.findViewById(R.id.card_description);
+            imageView = itemView.findViewById(R.id.card_image);
         }
     }
 }
