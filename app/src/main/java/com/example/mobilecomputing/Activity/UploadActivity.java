@@ -77,7 +77,6 @@ public class UploadActivity extends AppCompatActivity {
         });
 
         submitProductButton.setOnClickListener(v -> {
-            // Handle the product upload
             String name = productName.getText().toString().trim();
             String price = productPrice.getText().toString().trim();
             String description = productDescription.getText().toString().trim();
@@ -100,53 +99,98 @@ public class UploadActivity extends AppCompatActivity {
     }
 
     private void uploadProduct(String name, String price, String description) {
-        uploadProgressBar.setVisibility(View.VISIBLE);  // Show the progress bar
+        // Show progress bar
+        uploadProgressBar.setVisibility(View.VISIBLE);
+        uploadProgressBar.setIndeterminate(true);  // Optionally use indeterminate progress for unknown durations
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("users");
+
+            userRef.orderByChild("email").equalTo(userEmail).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String username = snapshot.child("username").getValue(String.class);
+                            Double latitude = snapshot.child("profile").child("latitude").getValue(Double.class);
+                            Double longitude = snapshot.child("profile").child("longitude").getValue(Double.class);
+                            String userAddress = snapshot.child("profile").child("userAddress").getValue(String.class);
+
+                            if (latitude == null) latitude = 0.0;
+                            if (longitude == null) longitude = 0.0;
+                            if (userAddress == null) userAddress = "Unknown Location";
+
+                            uploadProductToDatabase(name, price, description, username, latitude, longitude, userAddress);
+                        }
+                    } else {
+                        Toast.makeText(UploadActivity.this, "User not found in database", Toast.LENGTH_SHORT).show();
+                        uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar if user is not found
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e("UploadActivity", "Failed to retrieve user details: " + databaseError.getMessage());
+                    uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar on error
+                }
+            });
+        }
+    }
+
+
+
+    private void uploadProductToDatabase(String name, String price, String description, String username, double latitude, double longitude, String userAddress) {
+        // Create a reference for the image to be uploaded in Firebase Storage
+        StorageReference fileRef = storageReference.child(System.currentTimeMillis() + ".jpg");
 
         // Upload image to Firebase Storage
-        StorageReference fileRef = storageReference.child(System.currentTimeMillis() + ".jpg");
         fileRef.putFile(selectedImageUri)
-                .addOnProgressListener(taskSnapshot -> {
-                    // Calculate and update progress
-                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                    uploadProgressBar.setProgress((int) progress);
-                })
                 .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    // Get the image URL after upload
-                    String imageUrl = uri.toString();
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    String username = user != null ? user.getDisplayName() : "Anonymous";
-                    uploadProductToDatabase(name, price, description, username, imageUrl);
+                    String imageUrl = uri.toString(); // Get the URL of the uploaded image
+
+                    // Log the image URL to ensure it's correct
+                    Log.d("UploadActivity", "Image URL: " + imageUrl);
+
+                    // Save product details to Firebase Realtime Database
+                    String productId = databaseReference.push().getKey();
+                    if (productId != null) {
+                        Map<String, Object> productData = new HashMap<>();
+                        productData.put("id", productId);
+                        productData.put("name", name);
+                        productData.put("price", price);
+                        productData.put("description", description);
+                        productData.put("imageUrl", imageUrl); // Store the image URL
+                        productData.put("username", username); // Store the username
+                        productData.put("latitude", latitude); // Store latitude
+                        productData.put("longitude", longitude); // Store longitude
+                        productData.put("userAddress", userAddress); // Store user address
+
+                        // Log product data before pushing it to Firebase
+                        Log.d("UploadActivity", "Product data: " + productData);
+
+                        // Store the product data in Firebase Realtime Database
+                        databaseReference.child(productId).setValue(productData)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(UploadActivity.this, "Product uploaded successfully", Toast.LENGTH_SHORT).show();
+                                        clearFields(); // Clear input fields after upload
+                                    } else {
+                                        Toast.makeText(UploadActivity.this, "Failed to upload product", Toast.LENGTH_SHORT).show();
+                                        Log.e("Firebase", "Error uploading product: " + task.getException().getMessage());
+                                    }
+                                    uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar when upload is done
+                                });
+                    }
                 }))
                 .addOnFailureListener(e -> {
-                    // Handle image upload failure
                     Toast.makeText(UploadActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                    uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar
+                    uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar on failure
                 });
     }
 
-    private void uploadProductToDatabase(String name, String price, String description, String username, String imageUrl) {
-        String productId = databaseReference.push().getKey();
 
-        Map<String, Object> productData = new HashMap<>();
-        productData.put("name", name);
-        productData.put("price", price);
-        productData.put("description", description);
-        productData.put("username", username);
-        productData.put("imageUrl", imageUrl);
-
-        databaseReference.child(productId).setValue(productData)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(UploadActivity.this, "Product uploaded successfully", Toast.LENGTH_SHORT).show();
-                        clearFields();  // Clear input fields
-                        uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar
-                    } else {
-                        Toast.makeText(UploadActivity.this, "Failed to upload product", Toast.LENGTH_SHORT).show();
-                        Log.e("Firebase", "Error uploading product: " + task.getException().getMessage());
-                        uploadProgressBar.setVisibility(View.GONE);  // Hide progress bar
-                    }
-                });
-    }
 
     private void clearFields() {
         productName.setText("");
