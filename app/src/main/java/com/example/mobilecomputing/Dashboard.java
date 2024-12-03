@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +27,7 @@ import androidx.appcompat.widget.SearchView;
 import com.example.mobilecomputing.Adapter.CardAdapter;
 import com.example.mobilecomputing.Adapter.CardItem;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,13 +42,13 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Toolbar toolbar;
-    private BottomNavigationView bottomNavigationView;
     private RecyclerView recyclerView;
     private SearchView searchView;
     private CardAdapter cardAdapter;
     private List<CardItem> itemList;
 
     private DatabaseReference databaseReference;
+    private DatabaseReference userRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,10 +78,11 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         cardAdapter = new CardAdapter(this, itemList);
         recyclerView.setAdapter(cardAdapter);
 
-
-
-        // Load products from Firebase
-        loadProductsFromFirebase();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String email = currentUser.getEmail();
+            retrieveUserAddressByEmail(email);
+        }
 
         searchView = findViewById(R.id.search_view);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -105,26 +109,78 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         cardAdapter.updateItems(filteredList);
     }
 
+    private void retrieveUserAddressByEmail(String email) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference userRef = database.getReference("users");
 
-    private void loadProductsFromFirebase() {
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        // Using email as the key to retrieve user address
+        userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        // Get the user address from the snapshot
+                        String userAddress = snapshot.child("profile").child("userAddress").getValue(String.class);
+
+                        if (userAddress != null) {
+                            // Load products based on the user's address
+                            loadProductsByUserAddress(userAddress);
+                        } else {
+                            Toast.makeText(Dashboard.this, "User address not found.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } else {
+                    Toast.makeText(Dashboard.this, "User not found in the database.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(Dashboard.this, "Failed to fetch user data.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadProductsByUserAddress(String userAddress) {
+        if (userAddress == null) {
+            Log.e("Dashboard", "User address is null. Cannot load products.");
+            return;
+        }
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference productRef = database.getReference("products");
+
+        Log.d("Dashboard", "Loading products with address: " + userAddress);
+
+        // Query the products by userAddress
+        productRef.orderByChild("userAddress").equalTo(userAddress).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
                 itemList.clear();
 
-                for (DataSnapshot productSnapshot : snapshot.getChildren()) {
-                    String productId = productSnapshot.getKey();
-                    if (productId == null) {
-                        continue;
-                    }
+                // Find the TextView that shows the message
+                TextView noItemsMessage = findViewById(R.id.no_items_message);
 
-                    String name = productSnapshot.child("name").getValue(String.class);
-                    String imageUrl = productSnapshot.child("imageUrl").getValue(String.class);
-                    String price = productSnapshot.child("price").getValue(String.class);
-                    String description = productSnapshot.child("description").getValue(String.class);
+                if (!dataSnapshot.exists()) {
+                    // If no products are found, show the "no items" message
+                    noItemsMessage.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);  // Hide the RecyclerView
+                    return;
+                }
 
-                    if (name != null && imageUrl != null && price != null && description != null) {
-                        // Now passing the productId to the CardItem
+                // Hide the "no items" message if products are found
+                noItemsMessage.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);  // Show the RecyclerView
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String productId = snapshot.getKey();  // Get the productId from the snapshot key
+                    String name = snapshot.child("name").getValue(String.class);
+                    String imageUrl = snapshot.child("imageUrl").getValue(String.class);
+                    String price = snapshot.child("price").getValue(String.class);
+                    String description = snapshot.child("description").getValue(String.class);
+
+                    if (name != null && imageUrl != null && price != null && description != null && productId != null) {
+                        // Now adding the products to the list with the correct number of parameters
                         itemList.add(new CardItem(name, imageUrl, price, description, productId));
                     }
                 }
@@ -133,11 +189,12 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(Dashboard.this, "Failed to load products.", Toast.LENGTH_SHORT).show();
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("Dashboard", "Failed to load products for address: " + userAddress);
             }
         });
     }
+
 
     // Override onNavigationItemSelected method from NavigationView.OnNavigationItemSelectedListener
     @Override
@@ -171,7 +228,6 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
-
 
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();

@@ -1,16 +1,25 @@
 package com.example.mobilecomputing.Activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.bumptech.glide.Glide;
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,11 +32,17 @@ public class ItemDetailsActivity extends AppCompatActivity {
     private TextView priceTextView;
     private TextView descriptionTextView;
     private TextView itemAddress;
+    private TextView distanceTextView;  // Add TextView for distance
     private ImageView itemImageView;
     private Button confirmButton;
     private ImageView backArrow;
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;  // LocationCallback for location updates
+    private LocationRequest locationRequest;  // LocationRequest for continuous updates
+
     private static final String TAG = "ItemDetailsActivity"; // Tag for logging
+    private Double productLatitude, productLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +57,9 @@ public class ItemDetailsActivity extends AppCompatActivity {
         confirmButton = findViewById(R.id.confirm_button);
         backArrow = findViewById(R.id.back_arrow);
         itemAddress = findViewById(R.id.item_address);
+        distanceTextView = findViewById(R.id.distance); // Initialize distance TextView
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Get the product details passed from the CardAdapter
         String name = getIntent().getStringExtra("name");
@@ -62,11 +80,12 @@ public class ItemDetailsActivity extends AppCompatActivity {
                 .error(R.drawable.uploadimg) // Change this as needed
                 .into(itemImageView);
 
-        // Fetch address from Firebase using productId
+        // Fetch product address and coordinates from Firebase using productId
         if (productId != null) {
-            fetchProductAddress(productId); // Fetch the address from Firebase
+            fetchProductDetails(productId); // Fetch the details including coordinates
         } else {
             itemAddress.setText("Address not available");
+            distanceTextView.setText("Distance: N/A");
         }
 
         // Handle confirm button click
@@ -93,58 +112,92 @@ public class ItemDetailsActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        // Initialize the location request
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(10000); // 10 seconds
+        locationRequest.setFastestInterval(5000); // 5 seconds
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        // Initialize the location callback
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(com.google.android.gms.location.LocationResult locationResult) {
+                if (locationResult != null && !locationResult.getLocations().isEmpty()) {
+                    Location location = locationResult.getLocations().get(0);
+                    double userLatitude = location.getLatitude();
+                    double userLongitude = location.getLongitude();
+
+                    // Recalculate the distance every time the location changes
+                    if (productLatitude != null && productLongitude != null) {
+                        calculateDistanceToProduct(productLatitude, productLongitude, userLatitude, userLongitude);
+                    }
+                }
+            }
+        };
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Retrieve data from intent
-        Intent intent = getIntent();
-        String name = intent.getStringExtra("name");
-        String price = intent.getStringExtra("price");
-        String description = intent.getStringExtra("description");
-        String imageUrl = intent.getStringExtra("imageUrl");
-
-        if (price == null || price.isEmpty()) {
-            price = "Price not available";
-        }
-
-        // Set the values
-        nameTextView.setText(name);
-        priceTextView.setText("Price: $" + price);
-        descriptionTextView.setText(description);
-
-        // Load the item image again using Glide (just in case)
-        Glide.with(this)
-                .load(imageUrl)
-                .placeholder(R.drawable.placeholder) // Change this as needed
-                .error(R.drawable.uploadimg) // Change this as needed
-                .into(itemImageView);
-    }
-
-    // Fetch product address from Firebase using productId
-    private void fetchProductAddress(String productId) {
+    private void fetchProductDetails(String productId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
         DatabaseReference productRef = database.getReference("products").child(productId);
 
         productRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String location = dataSnapshot.child("location").getValue(String.class);
+                String location = dataSnapshot.child("userAddress").getValue(String.class);
+                productLatitude = dataSnapshot.child("latitude").getValue(Double.class);
+                productLongitude = dataSnapshot.child("longitude").getValue(Double.class);
+
+                // Set the address text
                 if (location != null) {
                     itemAddress.setText(location); // Set the location/address in the TextView
-                    Log.d(TAG, "Address for productId " + productId + ": " + location); // Log the address
                 } else {
                     itemAddress.setText("Address not available");
-                    Log.d(TAG, "Address not found for productId " + productId); // Log if address is not found
+                }
+
+                // If latitude and longitude are available, start location updates
+                if (productLatitude != null && productLongitude != null) {
+                    startLocationUpdates();
+                } else {
+                    distanceTextView.setText("Distance: N/A");
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e(TAG, "Failed to fetch address: " + databaseError.getMessage());
-                itemAddress.setText("Error fetching address");
+                Log.e(TAG, "Failed to fetch product details: " + databaseError.getMessage());
             }
         });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
+    private void calculateDistanceToProduct(double productLatitude, double productLongitude, double userLatitude, double userLongitude) {
+        // Create Location objects for the user and product
+        Location productLocation = new Location("Product Location");
+        productLocation.setLatitude(productLatitude);
+        productLocation.setLongitude(productLongitude);
+
+        Location userLocation = new Location("User Location");
+        userLocation.setLatitude(userLatitude);
+        userLocation.setLongitude(userLongitude);
+
+        // Calculate the distance in meters
+        float distanceInMeters = userLocation.distanceTo(productLocation);
+
+        // Convert distance to kilometers
+        float distanceInKilometers = distanceInMeters / 1000;  // Convert meters to kilometers
+
+        // Set the distance in the TextView
+        distanceTextView.setText(String.format("Distance: %.2f km", distanceInKilometers));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        fusedLocationClient.removeLocationUpdates(locationCallback); // Stop location updates when the activity is paused
     }
 }
