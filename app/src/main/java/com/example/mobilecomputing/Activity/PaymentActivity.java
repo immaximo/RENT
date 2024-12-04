@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,16 +68,39 @@ public class PaymentActivity extends AppCompatActivity {
         // Create the payment item list
         paymentItemList = new ArrayList<>();
         String name = getIntent().getStringExtra("name");
-        String price = getIntent().getStringExtra("price");
+        String priceString = getIntent().getStringExtra("price");
         String imageUrl = getIntent().getStringExtra("imageUrl");
         String productId = getIntent().getStringExtra("productId");
 
-        if (name != null && price != null && imageUrl != null) {
-            PaymentItem item = new PaymentItem(name, price, imageUrl);
+        double price = 0.0;
+        if (priceString != null) {
+            try {
+                price = Double.parseDouble(priceString);
+            } catch (NumberFormatException e) {
+                e.printStackTrace(); // Handle potential parsing error if priceString is not valid
+            }
+        }
+
+        if (name != null && imageUrl != null) {
+            PaymentItem item = new PaymentItem(name, price, imageUrl, 1); // Default quantity is 1
             paymentItemList.add(item);
         }
 
-        cartAdapter = new PaymentAdapter(this, paymentItemList);
+        cartAdapter = new PaymentAdapter(this, paymentItemList, new PaymentAdapter.QuantityChangeListener() {
+            @Override
+            public void onQuantityChanged(int position, int newQuantity) {
+                PaymentItem item = paymentItemList.get(position);
+                item.setQuantity(newQuantity);
+
+                // Update the total price based on the new quantity
+                double totalPrice = item.getPrice() * newQuantity;
+                item.setTotalPrice(totalPrice);
+
+                cartAdapter.notifyItemChanged(position); // Notify the adapter to refresh the item view
+            }
+        });
+
+
         cartRecyclerView.setAdapter(cartAdapter);
 
         // Confirm button click listener
@@ -87,6 +111,7 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
     }
+
 
     // Method to save the productId to the user's rented items in Firebase
     private void saveProductIdToRentedItems(String productId) {
