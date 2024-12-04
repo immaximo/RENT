@@ -9,7 +9,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -20,6 +22,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,26 +31,20 @@ import com.google.firebase.database.ValueEventListener;
 
 public class ItemDetailsActivity extends AppCompatActivity {
 
-    private TextView nameTextView;
-    private TextView priceTextView;
-    private TextView descriptionTextView;
-    private TextView itemAddress;
-    private TextView distanceTextView;  // Add TextView for distance
-    private ImageView itemImageView;
+    private TextView nameTextView, priceTextView, descriptionTextView, itemAddress, distanceTextView;
+    private ImageView itemImageView, backArrow;
     private Button confirmButton;
-    private ImageView backArrow;
-
     private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;  // LocationCallback for location updates
-    private LocationRequest locationRequest;  // LocationRequest for continuous updates
+    private LocationCallback locationCallback;
+    private LocationRequest locationRequest;
 
-    private static final String TAG = "ItemDetailsActivity"; // Tag for logging
+    private static final String TAG = "ItemDetailsActivity";
     private Double productLatitude, productLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.item_details); // Layout file
+        setContentView(R.layout.item_details);
 
         // Initialize views
         nameTextView = findViewById(R.id.item_name);
@@ -57,69 +54,62 @@ public class ItemDetailsActivity extends AppCompatActivity {
         confirmButton = findViewById(R.id.confirm_button);
         backArrow = findViewById(R.id.back_arrow);
         itemAddress = findViewById(R.id.item_address);
-        distanceTextView = findViewById(R.id.distance); // Initialize distance TextView
+        distanceTextView = findViewById(R.id.distance);
 
+        // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Get the product details passed from the CardAdapter
+        // Get product details from the Intent
         String name = getIntent().getStringExtra("name");
         String price = getIntent().getStringExtra("price");
         String description = getIntent().getStringExtra("description");
         String imageUrl = getIntent().getStringExtra("imageUrl");
-        String productId = getIntent().getStringExtra("productId"); // Get productId from Intent
+        String productId = getIntent().getStringExtra("productId");
 
         // Set text for views
         nameTextView.setText(name);
         priceTextView.setText("Price: $" + price);
         descriptionTextView.setText(description);
 
-        // Load item image using Glide
+        // Load product image using Glide
         Glide.with(this)
                 .load(imageUrl)
-                .placeholder(R.drawable.placeholder) // Change this as needed
-                .error(R.drawable.uploadimg) // Change this as needed
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.uploadimg)
                 .into(itemImageView);
 
-        // Fetch product address and coordinates from Firebase using productId
+        // Fetch product details from Firebase
         if (productId != null) {
-            fetchProductDetails(productId); // Fetch the details including coordinates
-        } else {
-            itemAddress.setText("Address not available");
-            distanceTextView.setText("Distance: N/A");
+            fetchProductDetails(productId);
         }
 
+        // Fetch user details based on the current logged-in user's email
+        fetchUserDetails();
+
         // Handle confirm button click
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Pass product details to PaymentActivity
-                Intent intent = new Intent(ItemDetailsActivity.this, PaymentActivity.class);
-                intent.putExtra("name", name);
-                intent.putExtra("price", price);
-                intent.putExtra("description", description);
-                intent.putExtra("imageUrl", imageUrl);
-                intent.putExtra("productId", productId); // Pass productId to PaymentActivity
-                startActivity(intent);
-            }
+        confirmButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ItemDetailsActivity.this, PaymentActivity.class);
+            intent.putExtra("name", name);
+            intent.putExtra("price", price);
+            intent.putExtra("description", description);
+            intent.putExtra("imageUrl", imageUrl);
+            intent.putExtra("productId", productId);
+            startActivity(intent);
         });
 
         // Handle back arrow click (go back to Dashboard)
-        backArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ItemDetailsActivity.this, Dashboard.class);
-                startActivity(intent);
-                finish();
-            }
+        backArrow.setOnClickListener(v -> {
+            Intent intent = new Intent(ItemDetailsActivity.this, Dashboard.class);
+            startActivity(intent);
+            finish();
         });
 
-        // Initialize the location request
+        // Initialize location updates
         locationRequest = LocationRequest.create();
         locationRequest.setInterval(10000); // 10 seconds
         locationRequest.setFastestInterval(5000); // 5 seconds
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        // Initialize the location callback
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(com.google.android.gms.location.LocationResult locationResult) {
@@ -128,13 +118,57 @@ public class ItemDetailsActivity extends AppCompatActivity {
                     double userLatitude = location.getLatitude();
                     double userLongitude = location.getLongitude();
 
-                    // Recalculate the distance every time the location changes
+                    Log.d(TAG, "User Latitude: " + userLatitude + ", User Longitude: " + userLongitude);
+
                     if (productLatitude != null && productLongitude != null) {
                         calculateDistanceToProduct(productLatitude, productLongitude, userLatitude, userLongitude);
                     }
                 }
             }
         };
+    }
+
+    private void fetchUserDetails() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+            DatabaseReference userRef = database.getReference("users");
+
+            userRef.orderByChild("email").equalTo(userEmail).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String username = snapshot.child("username").getValue(String.class);
+                            String userAddress = snapshot.child("profile").child("userAddress").getValue(String.class);
+                            Double latitude = snapshot.child("profile").child("latitude").getValue(Double.class);
+                            Double longitude = snapshot.child("profile").child("longitude").getValue(Double.class);
+
+                            if (userAddress == null) userAddress = "Unknown Location";
+                            if (latitude == null) latitude = 0.0;
+                            if (longitude == null) longitude = 0.0;
+
+                            itemAddress.setText(userAddress);
+
+                            if (productLatitude != null && productLongitude != null) {
+                                calculateDistanceToProduct(productLatitude, productLongitude, latitude, longitude);
+                            }
+                        }
+                    } else {
+                        Toast.makeText(ItemDetailsActivity.this, "User not found in the database", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(ItemDetailsActivity.this, "Failed to fetch user data.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(this, "No user is logged in.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void fetchProductDetails(String productId) {
@@ -148,14 +182,12 @@ public class ItemDetailsActivity extends AppCompatActivity {
                 productLatitude = dataSnapshot.child("latitude").getValue(Double.class);
                 productLongitude = dataSnapshot.child("longitude").getValue(Double.class);
 
-                // Set the address text
                 if (location != null) {
-                    itemAddress.setText(location); // Set the location/address in the TextView
+                    itemAddress.setText(location);
                 } else {
                     itemAddress.setText("Address not available");
                 }
 
-                // If latitude and longitude are available, start location updates
                 if (productLatitude != null && productLongitude != null) {
                     startLocationUpdates();
                 } else {
@@ -176,7 +208,6 @@ public class ItemDetailsActivity extends AppCompatActivity {
     }
 
     private void calculateDistanceToProduct(double productLatitude, double productLongitude, double userLatitude, double userLongitude) {
-        // Create Location objects for the user and product
         Location productLocation = new Location("Product Location");
         productLocation.setLatitude(productLatitude);
         productLocation.setLongitude(productLongitude);
@@ -185,19 +216,15 @@ public class ItemDetailsActivity extends AppCompatActivity {
         userLocation.setLatitude(userLatitude);
         userLocation.setLongitude(userLongitude);
 
-        // Calculate the distance in meters
         float distanceInMeters = userLocation.distanceTo(productLocation);
+        float distanceInKilometers = distanceInMeters / 1000;
 
-        // Convert distance to kilometers
-        float distanceInKilometers = distanceInMeters / 1000;  // Convert meters to kilometers
-
-        // Set the distance in the TextView
         distanceTextView.setText(String.format("Distance: %.2f km", distanceInKilometers));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        fusedLocationClient.removeLocationUpdates(locationCallback); // Stop location updates when the activity is paused
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 }
