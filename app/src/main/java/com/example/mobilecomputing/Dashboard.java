@@ -121,6 +121,16 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         // Get the user address from the snapshot
                         String userAddress = snapshot.child("profile").child("userAddress").getValue(String.class);
+                        String username = snapshot.child("username").getValue(String.class);
+
+                        if (username != null) {
+                            // Update the tv_user_name TextView in the navigation header
+                            View headerView = navigationView.getHeaderView(0);
+                            TextView userNameTextView = headerView.findViewById(R.id.tv_user_name);
+                            userNameTextView.setText(username);
+                        } else {
+                            Toast.makeText(Dashboard.this, "Username not found.", Toast.LENGTH_SHORT).show();
+                        }
 
                         if (userAddress != null) {
                             // Load products based on the user's address
