@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/gainsboro" >
+        android:background="@color/gainsboro">
 
         <!-- Header -->
         <!-- Search Bar -->
@@ -33,7 +33,6 @@
                 android:layout_marginStart="-8dp"
                 android:layout_marginEnd="-8dp"
                 android:titleTextColor="@android:color/white" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -55,8 +54,19 @@
                 android:layout_marginTop="0dp"
                 android:layout_marginHorizontal="8dp"
                 android:textColor="#000000" />
-
         </LinearLayout>
+
+        <!-- No Items Message TextView (Initially Hidden) -->
+        <TextView
+            android:id="@+id/no_items_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="There are no items for rent in your area."
+            android:visibility="gone"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textColor="@android:color/darker_gray"/>
 
         <!-- Main Content Area (RecyclerView) -->
         <androidx.recyclerview.widget.RecyclerView
@@ -67,7 +77,6 @@
             android:background="@android:color/transparent"
             android:padding="16dp"
             android:scrollbars="vertical" />
-
 
     </LinearLayout>
 

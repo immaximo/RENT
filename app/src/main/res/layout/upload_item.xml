@@ -48,7 +48,6 @@
         android:focusable="true"
         android:padding="16dp">
 
-
         <ImageView
             android:id="@+id/upload_icon"
             android:layout_width="320dp"
@@ -141,7 +140,6 @@
         android:id="@+id/product_description"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-
         android:layout_below="@id/product_description_label"
         android:layout_marginTop="8dp"
         android:padding="12dp"
@@ -169,4 +167,13 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"/>
 
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/upload_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_below="@id/submit_product_button"
+        android:layout_marginTop="24dp"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

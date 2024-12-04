@@ -1,55 +1,73 @@
 package com.example.mobilecomputing.Activity;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.widget.FrameLayout;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.appcompat.app.AlertDialog;
 
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    Location currentLocation;
-    FusedLocationProviderClient fusedLocationProviderClient;
     private static final int REQUEST_CODE = 101;
-    FrameLayout map;
+    private static final String TAG = "MapActivity";
+
+    private Location currentLocation;
+    private FusedLocationProviderClient fusedLocationProviderClient;
     private GoogleMap mMap;
+    private LatLng selectedLatLng;
     private ImageView backArrow;
+    private Button saveButton;
+    private Marker currentMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_page);
 
-        map = findViewById(R.id.map);
         backArrow = findViewById(R.id.back_arrow);
+        saveButton = findViewById(R.id.save_button);
+
         backArrow.setOnClickListener(v -> {
-            // Navigate back to the Dashboard activity
             Intent intent = new Intent(getApplicationContext(), Dashboard.class);
             startActivity(intent);
             finish();
+        });
+
+        saveButton.setOnClickListener(v -> {
+            if (selectedLatLng != null) {
+                saveLocationToDatabase();
+            } else {
+                Toast.makeText(MapActivity.this, "Please select a location", Toast.LENGTH_SHORT).show();
+            }
         });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -59,7 +77,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     private void checkPermissionsAndGetLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
         } else {
             getLocation();
@@ -67,57 +84,163 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     }
 
     private void getLocation() {
-        // Check if permission is granted
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            // Request permissions if not granted
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
             return;
         }
 
-        // If permission is granted, fetch the location
-        Task<Location> task = fusedLocationProviderClient.getLastLocation();
-
-        task.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    currentLocation = location;
-
-                    // Now you can work with the current location
-                    SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                    if (supportMapFragment != null) {
-                        supportMapFragment.getMapAsync(MapActivity.this);
-                    }
-                } else {
-                    // Handle the case where location is null
-                    Toast.makeText(MapActivity.this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
-                }
+        fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                currentLocation = location;
+                loadMap();
+            } else {
+                Toast.makeText(MapActivity.this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
             }
-        });
-
-        task.addOnFailureListener(e -> {
-            // Handle failure if task couldn't retrieve the location
-            Toast.makeText(MapActivity.this, "Error fetching location: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 
+    private void loadMap() {
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        if (supportMapFragment != null) {
+            supportMapFragment.getMapAsync(this);
+        }
+    }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Move the camera to the current location
-        if (currentLocation != null) {
-            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("Your Location");
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        // Load user's saved location or default location
+        loadUserLocation();
+
+        // Enable clicks on the map
+        mMap.setOnMapClickListener(latLng -> {
+            // Update the selected location
+            selectedLatLng = latLng;
+
+            // Remove the old marker if it exists
+            if (currentMarker != null) {
+                currentMarker.remove();
+            }
+
+            // Add a new marker at the clicked location
+            currentMarker = mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
+
+            // Move the camera to the selected location
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-            mMap.addMarker(markerOptions);
+        });
+    }
+
+    private void loadUserLocation() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "No user logged in", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Removed the setOnMapClickListener to make the map non-clickable
+        String email = currentUser.getEmail();
+        Log.d(TAG, "Current user's email: " + email);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference userRef = database.getReference("users");
+
+        userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String username = snapshot.child("username").getValue(String.class);
+                    if (username != null) {
+                        DatabaseReference profileRef = userRef.child(username).child("profile");
+
+                        profileRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot profileSnapshot) {
+                                Double latitude = profileSnapshot.child("latitude").getValue(Double.class);
+                                Double longitude = profileSnapshot.child("longitude").getValue(Double.class);
+
+                                if (latitude != null && longitude != null) {
+                                    LatLng userLocation = new LatLng(latitude, longitude);
+                                    currentMarker = mMap.addMarker(new MarkerOptions().position(userLocation).title("Saved Location"));
+                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                                } else {
+                                    setDefaultMarker();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Log.e(TAG, "Failed to retrieve user location: " + error.getMessage());
+                                setDefaultMarker();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(MapActivity.this, "Username not found", Toast.LENGTH_SHORT).show();
+                        setDefaultMarker();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to retrieve username: " + error.getMessage());
+                setDefaultMarker();
+            }
+        });
+    }
+
+    private void setDefaultMarker() {
+        LatLng defaultLatLng = currentLocation != null ?
+                new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()) :
+                new LatLng(-34, 151); // Sydney, Australia (default location)
+
+        currentMarker = mMap.addMarker(new MarkerOptions().position(defaultLatLng).title("Default Location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 15));
+        selectedLatLng = defaultLatLng; // Set default location as selected
+    }
+
+    private void saveLocationToDatabase() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "No user logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String email = currentUser.getEmail();
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        DatabaseReference userRef = database.getReference("users");
+
+        userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String username = snapshot.child("username").getValue(String.class);
+
+                    if (username != null) {
+                        DatabaseReference profileRef = userRef.child(username).child("profile");
+
+                        HashMap<String, Object> locationData = new HashMap<>();
+                        locationData.put("latitude", selectedLatLng.latitude);
+                        locationData.put("longitude", selectedLatLng.longitude);
+
+                        profileRef.updateChildren(locationData).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(MapActivity.this, "Location saved successfully!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(MapActivity.this, "Failed to save location", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(MapActivity.this, "Username not found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to save location: " + error.getMessage());
+            }
+        });
     }
 
     @Override
@@ -127,7 +250,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLocation();
             } else {
-                // Handle permission denial (show a message or redirect user to settings)
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
             }
         }
     }

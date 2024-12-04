@@ -166,13 +166,14 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/distance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:fontFamily="@font/nunito"
                         android:text="2.5km"
-                        android:textSize="14sp"
                         android:textColor="@color/black"
+                        android:textSize="14sp"
                         android:textStyle="normal" />
 
                     <Space
