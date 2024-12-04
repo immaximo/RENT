@@ -33,8 +33,8 @@ public class ProfileActivity extends AppCompatActivity {
         super.onResume();
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            String email = currentUser.getEmail(); // Re-fetch the email
-            retrieveUsernameByEmail(email); // Reload profile data
+            String email = currentUser.getEmail();
+            retrieveUsernameByEmail(email);
         }
     }
 
