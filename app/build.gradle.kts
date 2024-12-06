@@ -43,6 +43,7 @@ dependencies {
     implementation ("com.squareup.picasso:picasso:2.8")
     implementation ("com.google.android.gms:play-services-maps:19.0.0")
     implementation ("com.google.android.gms:play-services-location:21.3.0")
+
     implementation(libs.play.services.maps)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
@@ -55,8 +56,8 @@ dependencies {
         implementation(libs.constraintlayout)
         implementation(libs.firebase.database)
         implementation(libs.firebase.storage)
-        implementation(libs.glide) // Add Glide library
-        annotationProcessor(libs.glide.compiler) // Add Glide compiler
+        implementation(libs.glide)
+        annotationProcessor(libs.glide.compiler)
         testImplementation(libs.junit)
         androidTestImplementation(libs.ext.junit)
         androidTestImplementation(libs.espresso.core)
