@@ -6,24 +6,25 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
+
 import com.example.mobilecomputing.Adapter.PaymentAdapter;
 import com.example.mobilecomputing.Adapter.PaymentItem;
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class PaymentActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.payment_page); // Layout file
+        setContentView(R.layout.payment_page);
 
         // Initialize views
         cartRecyclerView = findViewById(R.id.cartView);
@@ -48,21 +49,10 @@ public class PaymentActivity extends AppCompatActivity {
         confirm = findViewById(R.id.confirm_button);
 
         ImageView backArrow = findViewById(R.id.back_arrow);
-        backArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = getIntent().getStringExtra("name");
-                String price = getIntent().getStringExtra("price");
-                String imageUrl = getIntent().getStringExtra("imageUrl");
-
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra("name", name);
-                returnIntent.putExtra("price", price);
-                returnIntent.putExtra("imageUrl", imageUrl);
-
-                setResult(RESULT_OK, returnIntent);
-                finish();
-            }
+        backArrow.setOnClickListener(v -> {
+            Intent returnIntent = new Intent();
+            setResult(RESULT_OK, returnIntent);
+            finish();
         });
 
         // Create the payment item list
@@ -71,13 +61,14 @@ public class PaymentActivity extends AppCompatActivity {
         String priceString = getIntent().getStringExtra("price");
         String imageUrl = getIntent().getStringExtra("imageUrl");
         String productId = getIntent().getStringExtra("productId");
+        String uploaderUsername = getIntent().getStringExtra("uploaderUsername");
 
         double price = 0.0;
         if (priceString != null) {
             try {
                 price = Double.parseDouble(priceString);
             } catch (NumberFormatException e) {
-                e.printStackTrace(); // Handle potential parsing error if priceString is not valid
+                Log.e(TAG, "Invalid price format", e);
             }
         }
 
@@ -86,41 +77,75 @@ public class PaymentActivity extends AppCompatActivity {
             paymentItemList.add(item);
         }
 
-        cartAdapter = new PaymentAdapter(this, paymentItemList, new PaymentAdapter.QuantityChangeListener() {
-            @Override
-            public void onQuantityChanged(int position, int newQuantity) {
-                PaymentItem item = paymentItemList.get(position);
-                item.setQuantity(newQuantity);
+        cartAdapter = new PaymentAdapter(this, paymentItemList, (position, newQuantity) -> {
+            PaymentItem item = paymentItemList.get(position);
+            item.setQuantity(newQuantity);
 
-                // Update the total price based on the new quantity
-                double totalPrice = item.getPrice() * newQuantity;
-                item.setTotalPrice(totalPrice);
+            double totalPrice = item.getPrice() * newQuantity;
+            item.setTotalPrice(totalPrice);
 
-                cartAdapter.notifyItemChanged(position); // Notify the adapter to refresh the item view
-            }
+            cartAdapter.notifyItemChanged(position);
         });
-
 
         cartRecyclerView.setAdapter(cartAdapter);
 
         // Confirm button click listener
-        confirm.setOnClickListener(new View.OnClickListener() {
+        confirm.setOnClickListener(v -> {
+            saveProductToRentedItems(productId); // Save the product to the active user's rented items
+            // Prepare notification data
+            String message = "Someone wants to rent " + name;
+            HashMap<String, Object> notificationData = new HashMap<>();
+            notificationData.put("title", "New Rent Request");
+            notificationData.put("message", message);
+            saveNotificationToDatabase(productId, notificationData); // Save notification for the product
+        });
+    }
+
+    private void saveNotificationToDatabase(String productId, HashMap<String, Object> notificationData) {
+        // Fetch the username from the product node using productId
+        DatabaseReference productRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference("products")
+                .child(productId);
+
+        productRef.child("username").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                saveProductIdToRentedItems(productId); // Save productId to rented items in Firebase
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String username = snapshot.getValue(String.class);
+                if (username != null) {
+                    // Save the notification under the user's notifications node
+                    DatabaseReference notificationsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                            .getReference("users")
+                            .child(username)
+                            .child("notifications");
+
+                    // Generate a unique ID for the new notification (e.g., using a timestamp or auto-increment)
+                    String notificationId = notificationsRef.push().getKey();
+
+                    if (notificationId != null) {
+                        notificationsRef.child(notificationId).setValue(notificationData)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "Notification saved to database.");
+                                    } else {
+                                        Log.e(TAG, "Failed to save notification.");
+                                    }
+                                });
+                    } else {
+                        Log.e(TAG, "Failed to generate notification ID.");
+                    }
+                } else {
+                    Log.e(TAG, "Username not found for product: " + productId);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error fetching username from product: " + error.getMessage());
             }
         });
     }
 
-
-    // Method to save the productId to the user's rented items in Firebase
-    private void saveProductIdToRentedItems(String productId) {
-        if (productId == null) {
-            Log.e(TAG, "Product ID is null");
-            Toast.makeText(PaymentActivity.this, "Product ID is missing", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
+    private void saveProductToRentedItems(String productId) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "No user logged in.");
@@ -129,22 +154,52 @@ public class PaymentActivity extends AppCompatActivity {
         }
 
         String email = currentUser.getEmail();
-        Log.d(TAG, "Current user's email: " + email);
-
-        // Get the username from Firebase using the email
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        DatabaseReference userRef = database.getReference("users");
+        DatabaseReference userRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference("users");
 
         userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String username = snapshot.child("username").getValue(String.class);
-                    Log.d(TAG, "Retrieved username: " + username);
 
                     if (username != null) {
-                        // Save the productId under the user's rented items
-                        saveProductToRentedItems(username, productId);
+                        DatabaseReference rentedItemsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                                .getReference("users")
+                                .child(username) // Save to the logged-in user's rented items
+                                .child("rented_items");
+
+                        rentedItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                HashMap<String, Object> rentedItemsMap = new HashMap<>();
+
+                                int productCount = 1;
+                                while (dataSnapshot.hasChild("product" + productCount)) {
+                                    productCount++;
+                                }
+
+                                String newKey = "product" + productCount;
+                                rentedItemsMap.put(newKey, productId);
+
+                                rentedItemsRef.updateChildren(rentedItemsMap).addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "Product ID saved to rented items");
+                                        Toast.makeText(PaymentActivity.this, "Product rented successfully", Toast.LENGTH_SHORT).show();
+                                        Intent home = new Intent(getApplicationContext(), Dashboard.class);
+                                        startActivity(home);
+                                        finish();
+                                    } else {
+                                        Log.e(TAG, "Failed to save product ID to rented items");
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                Log.e(TAG, "Failed to fetch rented items: " + databaseError.getMessage());
+                            }
+                        });
                     } else {
                         Log.e(TAG, "Username not found in Firebase.");
                         Toast.makeText(PaymentActivity.this, "Username not found", Toast.LENGTH_SHORT).show();
@@ -155,53 +210,7 @@ public class PaymentActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e(TAG, "Failed to get username: " + error.getMessage());
-                Toast.makeText(PaymentActivity.this, "Failed to get username", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    private void saveProductToRentedItems(String username, String productId) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        DatabaseReference rentedItemsRef = database.getReference("users").child(username).child("rented_items");
-
-        // Fetch existing rented items to determine the next available key
-        rentedItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Create a new HashMap to store the updated rented items
-                HashMap<String, Object> rentedItemsMap = new HashMap<>();
-
-                // Check if any items already exist, and if so, determine the next key (e.g., "product1", "product2", etc.)
-                int productCount = 1;
-                while (dataSnapshot.hasChild("product" + productCount)) {
-                    productCount++;
-                }
-
-                // Create the new key and add the productId
-                String newKey = "product" + productCount;
-                rentedItemsMap.put(newKey, productId);
-
-                // Save the updated map to the rented_items node
-                rentedItemsRef.updateChildren(rentedItemsMap).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Product ID saved to rented items");
-                        Toast.makeText(PaymentActivity.this, "Product rented successfully", Toast.LENGTH_SHORT).show();
-                        Intent home = new Intent(getApplicationContext(), Dashboard.class);
-                        startActivity(home);
-                        finish();
-                    } else {
-                        Log.e(TAG, "Failed to save product ID to rented items");
-                        Toast.makeText(PaymentActivity.this, "Failed to rent product", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e(TAG, "Failed to fetch rented items: " + databaseError.getMessage());
-                Toast.makeText(PaymentActivity.this, "Failed to fetch rented items", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
 }
