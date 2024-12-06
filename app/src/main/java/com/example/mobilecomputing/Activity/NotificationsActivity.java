@@ -98,27 +98,26 @@ public class NotificationsActivity extends AppCompatActivity {
     }
 
     private void fetchNotificationsForUser(String username) {
-        // Fetch notifications for the specific user from the Firebase database
         DatabaseReference notificationsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
                 .getReference("users")
                 .child(username)
-                .child("notifications");
+                .child("rented_items");
 
         notificationsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                notificationsList.clear(); // Clear previous data
+                notificationsList.clear();
 
-                // Loop through the notifications and add to the list
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String title = snapshot.child("title").getValue(String.class);
-                    String message = snapshot.child("message").getValue(String.class);
-                    if (title != null && message != null) {
-                        notificationsList.add(new NotificationItem(title, message));
+                    String productId = snapshot.child("productId").getValue(String.class);
+                    Double totalPrice = snapshot.child("total_price").getValue(Double.class);
+
+                    if (productId != null && totalPrice != null) {
+                        String message = "Product ID: " + productId + ", Total Price: " + totalPrice;
+                        notificationsList.add(new NotificationItem("Rented Item", message));
                     }
                 }
 
-                // Notify the adapter to update the UI with new data
                 notificationsAdapter.notifyDataSetChanged();
             }
 
@@ -128,6 +127,7 @@ public class NotificationsActivity extends AppCompatActivity {
             }
         });
     }
+
 
     // NotificationItem class to represent each notification
     public static class NotificationItem {
