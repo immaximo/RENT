@@ -2,8 +2,10 @@ package com.example.mobilecomputing.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,6 +14,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.mobilecomputing.Adapter.NotificationsAdapter;
 import com.example.mobilecomputing.Dashboard;
 import com.example.mobilecomputing.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +30,7 @@ public class NotificationsActivity extends AppCompatActivity {
     private NotificationsAdapter notificationsAdapter;
     private List<NotificationItem> notificationsList;
     private ImageView backArrow;
+    private static final String TAG = "NotificationsActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +49,7 @@ public class NotificationsActivity extends AppCompatActivity {
         backArrow.setOnClickListener(view -> {
             Intent intent = new Intent(NotificationsActivity.this, Dashboard.class);
             startActivity(intent);
-            finish();  // Close NotificationsActivity
+            finish(); // Close NotificationsActivity
         });
 
         // Initialize RecyclerView and data list
@@ -48,6 +57,8 @@ public class NotificationsActivity extends AppCompatActivity {
         notificationsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         notificationsList = new ArrayList<>();
+
+        // Load notifications data
         loadNotificationsData();
 
         // Set up the adapter
@@ -56,16 +67,72 @@ public class NotificationsActivity extends AppCompatActivity {
     }
 
     private void loadNotificationsData() {
-        // Sample data - replace this with actual data from your database or API
-        notificationsList.add(new NotificationItem("New Rent Alert", "You have a new rent due on 2024-01-15"));
-        notificationsList.add(new NotificationItem("Payment Reminder", "Your payment for 'Laptop' is due tomorrow."));
-        notificationsList.add(new NotificationItem("Account Update", "Your account has been updated successfully."));
+        // Fetch the current user from Firebase Authentication
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String currentUserEmail = auth.getCurrentUser().getEmail();
+
+        if (currentUserEmail != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                    .getReference("users");
+
+            // Query to get the username associated with the email
+            userRef.orderByChild("email").equalTo(currentUserEmail).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        String username = snapshot.child("username").getValue(String.class);
+
+                        if (username != null) {
+                            // Now fetch notifications for the specific username
+                            fetchNotificationsForUser(username);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e(TAG, "Failed to get username: " + databaseError.getMessage());
+                }
+            });
+        }
+    }
+
+    private void fetchNotificationsForUser(String username) {
+        // Fetch notifications for the specific user from the Firebase database
+        DatabaseReference notificationsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference("users")
+                .child(username)
+                .child("notifications");
+
+        notificationsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                notificationsList.clear(); // Clear previous data
+
+                // Loop through the notifications and add to the list
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String title = snapshot.child("title").getValue(String.class);
+                    String message = snapshot.child("message").getValue(String.class);
+                    if (title != null && message != null) {
+                        notificationsList.add(new NotificationItem(title, message));
+                    }
+                }
+
+                // Notify the adapter to update the UI with new data
+                notificationsAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Failed to load notifications: " + databaseError.getMessage());
+            }
+        });
     }
 
     // NotificationItem class to represent each notification
     public static class NotificationItem {
-        String title;
-        String message;
+        private final String title;
+        private final String message;
 
         public NotificationItem(String title, String message) {
             this.title = title;
