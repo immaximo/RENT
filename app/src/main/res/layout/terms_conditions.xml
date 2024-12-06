@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginBottom="2dp"
+        android:background="@android:color/transparent"
+        android:elevation="4dp"
+        app:layout_scrollFlags="scroll|enterAlways">
+
+        <ImageView
+            android:id="@+id/back_arrow"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="16dp"
+            android:contentDescription="Back"
+            android:src="@drawable/back_arrow"
+            app:tint="@android:color/black" />
+
+        <TextView
+            android:id="@+id/terms_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:text="Terms and Conditions"
+            android:textColor="@color/black"
+            android:textSize="24sp" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to RENT! By using our app, you agree to comply with and be bound by the following terms and conditions. Please read them carefully before using the app."
+            android:textColor="@color/black"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. Definitions"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="App refers to the RENT project mobile application.\nUser: refers to anyone who registers or uses the app, including renters and item owners.\nItem Owner: refers to a user who lists an item for rent.\nRenter: refers to a user who rents an item listed on the app."
+            android:textColor="@color/black"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2. User Account"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. Users must be at least 18 years old to create an account.\n2. Users are responsible for maintaining the confidentiality of their account credentials.\n3. Users must provide accurate and up-to-date information during registration.\n4. Any fraudulent or unauthorized use of another person’s account is strictly prohibited."
+            android:textColor="@color/black"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3. Use of the App"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. The app is intended solely for the purpose of facilitating rentals of items between users.\n2. Users agree to: \n   - Use the app responsibly and ethically.\n   - Not engage in activities that could harm other users, the app, or violate applicable laws.\n3. The app reserves the right to suspend or terminate accounts found violating these terms."
+            android:textColor="@color/black"
+            android:paddingBottom="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4. Listing and Renting Items"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Item Owners:\n - Must ensure that the items listed are owned by them and fit for use. \n - Provide accurate descriptions and images of the items.\n - Specify rental terms, including price, duration, and conditions."
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Renters:\n - Agree to return rented items in the condition received, subject to normal wear and tear.\n - Must adhere to the rental terms specified by the Item Owner."
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5. Payments"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payments for rentals must be processed through the app’s designated payment system unless otherwise agreed by both parties."
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="6. Prohibited Activities"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Users must not:\n - List prohibited or illegal items.\n - Harass, threaten, or harm other users.\n - Use the app to conduct fraudulent activities.\n - Upload malicious code, viruses, or other harmful content."
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="7. Privacy Policy"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="By using the app, you consent to the collection, use, and storage of your information as outlined in our Privacy Policy.  "
+            android:textColor="@color/black"
+            android:paddingBottom="8dp" />
+    </LinearLayout>
+</ScrollView>
+</LinearLayout>

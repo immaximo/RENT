@@ -59,6 +59,9 @@
             android:name=".Activity.NotificationsActivity"
             android:exported="true" />
         <activity
+            android:name=".Activity.TermsConditionsActivity"
+            android:exported="true" />
+        <activity
             android:name=".Activity.UploadActivity"
             android:exported="true" />
         <activity

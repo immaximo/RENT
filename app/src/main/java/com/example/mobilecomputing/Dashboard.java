@@ -23,6 +23,7 @@ import com.example.mobilecomputing.Activity.MapActivity;
 import com.example.mobilecomputing.Activity.NotificationsActivity;
 import com.example.mobilecomputing.Activity.ProfileActivity;
 import com.example.mobilecomputing.Activity.RentHistory;
+import com.example.mobilecomputing.Activity.TermsConditionsActivity;
 import com.example.mobilecomputing.Activity.UploadActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -246,6 +247,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             // Start the UploadActivity (where user uploads the product details)
             Intent uploadIntent = new Intent(Dashboard.this, UploadActivity.class);
             startActivity(uploadIntent);
+        } else if (menuItem.getItemId() == R.id.nav_terms) {
+                Intent termsIntent = new Intent(Dashboard.this, TermsConditionsActivity.class);
+                startActivity(termsIntent);
         } else if (menuItem.getItemId() == R.id.nav_logout) {
             // Logout logic here
             logoutUser();
