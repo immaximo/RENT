@@ -101,7 +101,6 @@ public class RentHistory extends AppCompatActivity {
     }
 
     private void fetchRentedItems(String username) {
-        // Step 4: Use the username to get the rented items from 'users/{username}/profile/rented_items'
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
         DatabaseReference rentedItemsRef = database.getReference("users").child(username).child("rented_items");
 
@@ -110,14 +109,21 @@ public class RentHistory extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 rentHistoryList.clear();
 
-                // Step 5: For each productId in rented_items, fetch the product details
+                // Iterate over each child under 'rented_items'
                 for (DataSnapshot rentedItemSnapshot : snapshot.getChildren()) {
-                    String productId = rentedItemSnapshot.getValue(String.class);
-                    Log.d(TAG, "Fetching details for productId: " + productId); // Log the productId
+                    // Assuming the structure is 'item' with 'item_name' and 'total_price'
+                    String itemName = rentedItemSnapshot.child("item_name").getValue(String.class);
+                    String totalPrice = rentedItemSnapshot.child("total_price").getValue(String.class);
 
-                    if (productId != null) {
-                        fetchProductDetails(productId); // Fetch details for this productId
+                    // Only add items if both 'item_name' and 'total_price' are available
+                    if (itemName != null && totalPrice != null) {
+                        rentHistoryList.add(new RentHistoryItem(itemName, totalPrice));
                     }
+                }
+
+                // Notify the adapter to refresh the RecyclerView
+                if (rentHistoryAdapter != null) {
+                    rentHistoryAdapter.notifyDataSetChanged();
                 }
             }
 
@@ -125,39 +131,6 @@ public class RentHistory extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e(TAG, "Failed to load rented items: " + error.getMessage());
                 Toast.makeText(RentHistory.this, "Failed to load rented items", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void fetchProductDetails(String productId) {
-        // Step 6: Fetch the product details from the 'products' node using the productId
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        DatabaseReference productRef = database.getReference("products").child(productId);
-
-        productRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Step 7: Retrieve the product details (only name and price)
-                String name = snapshot.child("name").getValue(String.class);
-                String price = snapshot.child("price").getValue(String.class);
-
-                Log.d(TAG, "Fetched product details: Name = " + name + ", Price = " + price); // Log name and price
-
-                // Step 8: Create a RentHistoryItem for each product and add it to the list
-                if (name != null && price != null) {
-                    rentHistoryList.add(new RentHistoryItem(name, price));
-                }
-
-                // Update the RecyclerView adapter
-                if (rentHistoryAdapter != null) {
-                    rentHistoryAdapter.notifyDataSetChanged(); // Ensure this method notifies adapter of data changes
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to load product details: " + error.getMessage());
-                Toast.makeText(RentHistory.this, "Failed to load product details", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -91,7 +91,13 @@ public class PaymentActivity extends AppCompatActivity {
 
         // Confirm button click listener
         confirm.setOnClickListener(v -> {
-            saveProductToRentedItems(productId); // Save the product to the active user's rented items
+            double totalPrice = 0.0;
+            for (PaymentItem item : paymentItemList) {
+                totalPrice += item.getTotalPrice(); // Assuming total price is calculated in the adapter
+            } // Save the product to the active user's rented items
+
+            saveProductToRentedItems(productId, totalPrice);
+
             // Prepare notification data
             String message = "Someone wants to rent " + name;
             HashMap<String, Object> notificationData = new HashMap<>();
@@ -145,7 +151,7 @@ public class PaymentActivity extends AppCompatActivity {
         });
     }
 
-    private void saveProductToRentedItems(String productId) {
+    private void saveProductToRentedItems(String productId, double totalPrice) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "No user logged in.");
@@ -153,10 +159,12 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
+        // Get the user's email and fetch their username
         String email = currentUser.getEmail();
         DatabaseReference userRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
                 .getReference("users");
 
+        // Find the username from the email
         userRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -164,40 +172,64 @@ public class PaymentActivity extends AppCompatActivity {
                     String username = snapshot.child("username").getValue(String.class);
 
                     if (username != null) {
-                        DatabaseReference rentedItemsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                                .getReference("users")
-                                .child(username) // Save to the logged-in user's rented items
-                                .child("rented_items");
+                        // Fetch the product's name using the productId
+                        DatabaseReference productRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                                .getReference("products")
+                                .child(productId);
 
-                        rentedItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        productRef.child("name").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                HashMap<String, Object> rentedItemsMap = new HashMap<>();
+                            public void onDataChange(@NonNull DataSnapshot productSnapshot) {
+                                String itemName = productSnapshot.getValue(String.class);
 
-                                int productCount = 1;
-                                while (dataSnapshot.hasChild("product" + productCount)) {
-                                    productCount++;
+                                if (itemName != null) {
+                                    // Now save the product to the user's rented items
+                                    DatabaseReference rentedItemsRef = FirebaseDatabase.getInstance("https://mobilecomputing-f9ac0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                                            .getReference("users")
+                                            .child(username)
+                                            .child("rented_items");
+
+                                    rentedItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot rentedItemsSnapshot) {
+                                            HashMap<String, Object> itemData = new HashMap<>();
+                                            itemData.put("item_name", itemName); // Use the item_name
+                                            itemData.put("total_price", String.valueOf(totalPrice)); // Convert totalPrice to string
+
+                                            // Generate a unique key for the rented item
+                                            int itemCount = 1;
+                                            while (rentedItemsSnapshot.hasChild("item" + itemCount)) {
+                                                itemCount++;
+                                            }
+
+                                            String newKey = "item" + itemCount;
+                                            rentedItemsRef.child(newKey).setValue(itemData).addOnCompleteListener(task -> {
+                                                if (task.isSuccessful()) {
+                                                    Log.d(TAG, "Item name and total price saved to rented items.");
+                                                    Toast.makeText(PaymentActivity.this, "Item rented successfully", Toast.LENGTH_SHORT).show();
+                                                    Intent home = new Intent(getApplicationContext(), Dashboard.class);
+                                                    startActivity(home);
+                                                    finish();
+                                                } else {
+                                                    Log.e(TAG, "Failed to save rented item.");
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                                            Log.e(TAG, "Failed to fetch rented items: " + databaseError.getMessage());
+                                        }
+                                    });
+                                } else {
+                                    Log.e(TAG, "Product name not found for productId: " + productId);
+                                    Toast.makeText(PaymentActivity.this, "Product details not found.", Toast.LENGTH_SHORT).show();
                                 }
-
-                                String newKey = "product" + productCount;
-                                rentedItemsMap.put(newKey, productId);
-
-                                rentedItemsRef.updateChildren(rentedItemsMap).addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Log.d(TAG, "Product ID saved to rented items");
-                                        Toast.makeText(PaymentActivity.this, "Product rented successfully", Toast.LENGTH_SHORT).show();
-                                        Intent home = new Intent(getApplicationContext(), Dashboard.class);
-                                        startActivity(home);
-                                        finish();
-                                    } else {
-                                        Log.e(TAG, "Failed to save product ID to rented items");
-                                    }
-                                });
                             }
 
                             @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                Log.e(TAG, "Failed to fetch rented items: " + databaseError.getMessage());
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Log.e(TAG, "Error fetching product name: " + error.getMessage());
                             }
                         });
                     } else {
