@@ -14,8 +14,6 @@
         android:orientation="vertical"
         android:background="@color/gainsboro">
 
-        <!-- Header -->
-        <!-- Search Bar -->
         <LinearLayout
             android:id="@+id/header_layout"
             android:layout_width="match_parent"
@@ -24,7 +22,6 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Toolbar -->
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -52,9 +49,9 @@
                 android:iconifiedByDefault="false"
                 android:elevation="4dp"
                 android:layout_marginTop="0dp"
-                android:layout_marginHorizontal="8dp"
-                android:textColor="#000000" />
+                android:layout_marginHorizontal="8dp" />
         </LinearLayout>
+
 
         <!-- No Items Message TextView (Initially Hidden) -->
         <TextView
@@ -74,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:background="#F2F2F2"
             android:padding="16dp"
             android:scrollbars="vertical" />
 
