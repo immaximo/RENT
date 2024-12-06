@@ -44,7 +44,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         CardItem product = items.get(position);
 
         holder.nameTextView.setText(product.getName());
-        holder.priceTextView.setText("Price: $" + product.getPrice());
+        holder.priceTextView.setText("Price: ₱" + product.getPrice());
         holder.descriptionTextView.setText(product.getDescription());
 
         Glide.with(holder.imageView.getContext())
