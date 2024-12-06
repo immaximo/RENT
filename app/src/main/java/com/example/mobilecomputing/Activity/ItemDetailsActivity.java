@@ -68,7 +68,7 @@ public class ItemDetailsActivity extends AppCompatActivity {
 
         // Set text for views
         nameTextView.setText(name);
-        priceTextView.setText("Price: $" + price);
+        priceTextView.setText("Price: ₱" + price);
         descriptionTextView.setText(description);
 
         // Load product image using Glide
