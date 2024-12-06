@@ -43,12 +43,12 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_page);
 
-        // Set up the Toolbar as the ActionBar
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        // Back arrow functionality
+
         backArrow = findViewById(R.id.back_arrow);
         backArrow.setOnClickListener(view -> {
             // Go back to Dashboard

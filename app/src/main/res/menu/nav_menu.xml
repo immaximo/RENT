@@ -34,10 +34,6 @@
     <group
         android:id="@+id/group2">
         <item
-            android:id="@+id/nav_help"
-            android:background="@color/white"
-            android:title="Help Center"/>
-        <item
             android:id="@+id/nav_terms"
             android:background="@color/white"
             android:title="Terms and Conditions"/>
