@@ -1,12 +1,15 @@
 package com.example.mobilecomputing;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -85,6 +88,7 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         }
 
         searchView = findViewById(R.id.search_view);
+        customizeSearchView(searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -98,6 +102,19 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             }
         });
     }
+
+    private void customizeSearchView(SearchView searchView) {
+        // Get the EditText inside the SearchView
+        EditText searchEditText;
+        searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        if (searchEditText != null) {
+            // Set text color to black
+            searchEditText.setTextColor(Color.BLACK);
+            // Set hint text color to gray
+            searchEditText.setHintTextColor(Color.GRAY);
+        }
+    }
+
 
     private void filterItems(String query) {
         List<CardItem> filteredList = new ArrayList<>();
