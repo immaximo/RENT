@@ -18,7 +18,7 @@
             android:id="@+id/header_layout"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:background="@drawable/blue"
+            android:background="@color/blue"
             android:orientation="vertical"
             android:padding="12dp">
 
@@ -36,7 +36,7 @@
             android:id="@+id/header_layout2"
             android:layout_width="match_parent"
             android:layout_height="57dp"
-            android:background="@drawable/blue"
+            android:background="@color/blue"
             android:orientation="vertical"
             android:padding="8dp">
 

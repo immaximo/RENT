@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="176dp"
     android:gravity="bottom"
-    android:background="@drawable/blue"
+    android:background="@color/blue"
     android:padding="16dp">
 
     <TextView
@@ -15,14 +15,14 @@
         android:layout_height="wrap_content"
         android:text="RENT"
         android:textSize="35dp"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/tv_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:text=""
         android:layout_marginBottom="16dp" />

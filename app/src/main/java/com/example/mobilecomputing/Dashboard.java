@@ -231,25 +231,31 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             // Start the RentHistoryActivity
             Intent rentHistoryIntent = new Intent(Dashboard.this, RentHistory.class);
             startActivity(rentHistoryIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_viewprofile) {
             // Start the ProfileActivity
             Intent profileIntent = new Intent(Dashboard.this, ProfileActivity.class);
             startActivity(profileIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_notifications) {
             // Start the NotificationsActivity
             Intent notificationsIntent = new Intent(Dashboard.this, NotificationsActivity.class);
             startActivity(notificationsIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_map) {
             // Start the MapActivity
             Intent mapIntent = new Intent(Dashboard.this, MapActivity.class);
             startActivity(mapIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_upload) {
             // Start the UploadActivity (where user uploads the product details)
             Intent uploadIntent = new Intent(Dashboard.this, UploadActivity.class);
             startActivity(uploadIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_terms) {
                 Intent termsIntent = new Intent(Dashboard.this, TermsConditionsActivity.class);
                 startActivity(termsIntent);
+
         } else if (menuItem.getItemId() == R.id.nav_logout) {
             // Logout logic here
             logoutUser();
